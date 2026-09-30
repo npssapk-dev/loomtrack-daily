@@ -241,7 +241,7 @@ export function useWageRows(from: string, to: string, employeeId: string) {
 }
 
 /** One employee's production entries for a period, newest first, server-paged. */
-export function useEmployeeEntriesPage(employeeId: string, from: string, to: string, page: number, pageSize = 25) {
+export function useEmployeeEntriesPage(employeeId: number, from: string, to: string, page: number, pageSize = 25) {
   const bid = useBusinessId();
   return useQuery({
     queryKey: ["production_entries", bid, "emp_page", employeeId, from, to, page, pageSize],

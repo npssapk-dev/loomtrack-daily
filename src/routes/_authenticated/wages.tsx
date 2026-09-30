@@ -86,7 +86,7 @@ function WagesPage() {
         )}
       </Panel>
 
-      {view && <EntriesDialog employeeId={view} emp={empById.get(view)} from={from} to={to} onClose={() => setView(null)} />}
+      {view !== null && <EntriesDialog employeeId={view} emp={empById.get(view)} from={from} to={to} onClose={() => setView(null)} />}
     </div>
   );
 }
