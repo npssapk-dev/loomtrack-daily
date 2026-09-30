@@ -36,6 +36,20 @@ export function useProductionEntries(from: string, to: string) {
     },
   });
 }
+/** Latest N production entries for the current business, newest first. */
+export function useRecentProduction(limit = 5) {
+  const bid = useBusinessId();
+  return useQuery({
+    queryKey: ["production_entries", bid, "recent", limit],
+    enabled: !!bid,
+    queryFn: async () => {
+      const { data, error } = await db.from("production_entries").select("*").eq("business_id", bid)
+        .order("production_date", { ascending: false }).order("created_at", { ascending: false }).limit(limit);
+      if (error) throw error;
+      return data as ProductionEntry[];
+    },
+  });
+}
 export type PaymentType = { id: string; payment_type_no: number; business_id: string | null; description: string; direction: Direction; is_active: boolean };
 export type Payment = {
   id: string; payment_no: number; business_id: string; payment_date: string; payment_type_id: string;
