@@ -127,6 +127,7 @@ export type PaymentType = { id: number; business_id: number | null; description:
 export type Payment = {
   id: number; business_id: number; payment_date: string; payment_type_id: number;
   amount: number; employee_id: number | null; description: string | null; created_at: string;
+  created_by?: string | null; updated_at?: string | null; updated_by?: string | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -299,6 +300,44 @@ export function useProductionFilteredPage(f: ProdFilter, page: number, pageSize 
         .range(start, start + pageSize - 1);
       if (error) throw error;
       return { rows: data as ProductionEntry[], total: (count as number | null) ?? 0 };
+    },
+  });
+}
+
+/** Payments view filter; direction is resolved to payment_type_id list by the caller (from payment_types.direction). */
+export type PayFilter = { from: string; to: string; typeIds: number[] | null };
+function applyPayFilter(q: any, bid: number, f: PayFilter) {
+  q = q.eq("business_id", bid).gte("payment_date", f.from).lte("payment_date", f.to);
+  if (f.typeIds) q = q.in("payment_type_id", f.typeIds.length ? f.typeIds : [-1]);
+  return q;
+}
+export function usePaymentsPage(f: PayFilter, page: number, pageSize = 25) {
+  const bid = useBusinessId();
+  return useQuery({
+    queryKey: ["payments", bid, "page", f, page, pageSize],
+    enabled: !!bid && !!f.from && !!f.to,
+    placeholderData: (prev) => prev,
+    queryFn: async () => {
+      const start = page * pageSize;
+      const { data, error, count } = await applyPayFilter(db.from("payments").select("*", { count: "exact" }), bid!, f)
+        .order("payment_date", { ascending: false }).order("created_at", { ascending: false }).order("id", { ascending: false })
+        .range(start, start + pageSize - 1);
+      if (error) throw error;
+      return { rows: (data ?? []) as Payment[], total: count ?? 0 };
+    },
+  });
+}
+export const PAY_ROW_CAP = 20000;
+/** Light rows (type + amount) for period totals; capped. */
+export function usePaymentTotalsRows(f: PayFilter) {
+  const bid = useBusinessId();
+  return useQuery({
+    queryKey: ["payments", bid, "totals", f],
+    enabled: !!bid && !!f.from && !!f.to,
+    queryFn: async () => {
+      const { data, error } = await applyPayFilter(db.from("payments").select("payment_type_id, amount"), bid!, f).limit(PAY_ROW_CAP);
+      if (error) throw error;
+      return (data ?? []) as Pick<Payment, "payment_type_id" | "amount">[];
     },
   });
 }

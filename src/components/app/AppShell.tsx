@@ -16,8 +16,7 @@ const NAV = [
   { to: "/employees", label: "Employees", icon: Users },
   { to: "/production-summary", label: "Production Summary", icon: PieChart },
   { to: "/wages", label: "Employee Wages", icon: Wallet },
-  { to: "/income", label: "Income", icon: IndianRupee },
-  { to: "/expenses", label: "Expenses", icon: Receipt },
+  { to: "/payments", label: "Income & Expenses", icon: IndianRupee },
   { to: "/deliveries", label: "Sales & Delivery", icon: Truck },
   { to: "/machines", label: "Machines", icon: Cog },
   { to: "/products", label: "Products", icon: Package },
@@ -29,7 +28,7 @@ const NAV = [
 const BOTTOM = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
   { to: "/production", label: "Production", icon: Factory },
-  { to: "/expenses", label: "Expense", icon: Receipt },
+  { to: "/payments", label: "Payments", icon: Receipt },
   { to: "/deliveries", label: "Sales", icon: Truck },
 ] as const;
 
