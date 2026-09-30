@@ -221,3 +221,40 @@ export function errMsg(e: unknown) {
   if (e && typeof e === "object" && "message" in e) return String((e as { message: string }).message);
   return "Something went wrong";
 }
+
+/** Light rows (employee_id, quantity, wage_amount) for employee-wise wage grouping; capped, date range required. */
+export const WAGE_ROW_CAP = 20000;
+export function useWageRows(from: string, to: string, employeeId: string) {
+  const bid = useBusinessId();
+  return useQuery({
+    queryKey: ["production_entries", bid, "wage_rows", from, to, employeeId],
+    enabled: !!bid && !!from && !!to,
+    queryFn: async () => {
+      let q = db.from("production_entries").select("employee_id, quantity, wage_amount").eq("business_id", bid)
+        .gte("production_date", from).lte("production_date", to);
+      if (employeeId) q = q.eq("employee_id", employeeId);
+      const { data, error } = await q.limit(WAGE_ROW_CAP);
+      if (error) throw error;
+      return data as Pick<ProductionEntry, "employee_id" | "quantity" | "wage_amount">[];
+    },
+  });
+}
+
+/** One employee's production entries for a period, newest first, server-paged. */
+export function useEmployeeEntriesPage(employeeId: string, from: string, to: string, page: number, pageSize = 25) {
+  const bid = useBusinessId();
+  return useQuery({
+    queryKey: ["production_entries", bid, "emp_page", employeeId, from, to, page, pageSize],
+    enabled: !!bid && !!employeeId,
+    placeholderData: (prev) => prev,
+    queryFn: async () => {
+      const start = page * pageSize;
+      const { data, error, count } = await db.from("production_entries").select("*", { count: "exact" }).eq("business_id", bid)
+        .eq("employee_id", employeeId).gte("production_date", from).lte("production_date", to)
+        .order("production_date", { ascending: false }).order("created_at", { ascending: false }).order("record_no", { ascending: false })
+        .range(start, start + pageSize - 1);
+      if (error) throw error;
+      return { rows: data as ProductionEntry[], total: (count as number | null) ?? 0 };
+    },
+  });
+}
