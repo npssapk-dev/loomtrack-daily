@@ -12,4 +12,4 @@
 - Business tenancy: `_authenticated/route.tsx` gates on `business_users` membership (none -> /onboarding, which calls the external `register_business` RPC); every business query filters by the current `business_id` — prevents cross-business access.
 - Income & Expenses is one /payments screen reading/writing `payments`, filtered by `payment_types.direction`; legacy `income_entries`/`expenses` are never queried — single transaction table.
 - Core tables use a BIGINT `id` (10000+, DB sequence) as both key and display ID; inserts omit id; auth user ids stay UUID — matches the external schema.
-- Authenticated navigation uses a fixed mobile bar for Home, Production, Income & Exp, and Sales; Masters remains expandable with Reports and Settings in the shell menu, with no Transactions group.
+- Authenticated navigation keeps every operational page top-level, Masters expandable, and no Transactions group; mobile fixes Home, Production, Income & Exp, and Sales to the bottom bar.

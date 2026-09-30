@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  LayoutDashboard, Users, Cog, Package, Contact, BarChart3, Settings, Menu, LogOut, Tags, ChevronDown, Library, Factory, IndianRupee, Truck,
+  LayoutDashboard, Users, Cog, Package, Contact, BarChart3, Settings, Menu, LogOut, Tags, ChevronDown, Library, Factory, IndianRupee, Truck, PieChart, Wallet,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -66,7 +66,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     navigate({ to: "/auth", replace: true });
   }
 
-  const navLink = (item: { to: "/dashboard" | "/customers" | "/employees" | "/machines" | "/products" | "/payment-types" | "/reports" | "/settings"; label: string; icon: typeof LayoutDashboard }, nested = false) => {
+  const navLink = (item: { to: "/dashboard" | "/production" | "/payments" | "/deliveries" | "/production-summary" | "/wages" | "/customers" | "/employees" | "/machines" | "/products" | "/payment-types" | "/reports" | "/settings"; label: string; icon: typeof LayoutDashboard }, nested = false) => {
     const active = pathname.startsWith(item.to);
     return (
       <Link key={item.to} to={item.to}
@@ -81,6 +81,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navList = (
     <nav className="flex flex-col gap-0.5">
       {navLink({ to: "/dashboard", label: "Dashboard", icon: LayoutDashboard })}
+      {navLink({ to: "/production", label: "Daily Production", icon: Factory })}
+      {navLink({ to: "/payments", label: "Income & Expenses", icon: IndianRupee })}
+      {navLink({ to: "/deliveries", label: "Sales & Delivery", icon: Truck })}
+      {navLink({ to: "/production-summary", label: "Production Summary", icon: PieChart })}
+      {navLink({ to: "/wages", label: "Employee Wages", icon: Wallet })}
       <Collapsible open={mastersOpen} onOpenChange={setMastersOpen}>
         <CollapsibleTrigger asChild>
           <Button variant="ghost" className={cn("h-auto w-full justify-start gap-3 px-3 py-2.5 text-[15px] font-normal text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground", onMaster && "font-medium text-sidebar-accent-foreground")}>
@@ -103,8 +108,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const crumb = (
     <Breadcrumb className="min-w-0">
       <BreadcrumbList className="flex-nowrap gap-1 text-xs sm:text-sm">
+        {pathname !== "/dashboard" && <><BreadcrumbItem><BreadcrumbLink asChild><Link to="/dashboard"><span className="hidden sm:inline">Home</span><LayoutDashboard className="h-3.5 w-3.5 sm:hidden" aria-label="Home" /></Link></BreadcrumbLink></BreadcrumbItem><BreadcrumbSeparator /></>}
         {masterName && <><BreadcrumbItem><BreadcrumbLink asChild><Link to="/masters"><span className="hidden sm:inline">Masters</span><Library className="h-3.5 w-3.5 sm:hidden" aria-label="Masters" /></Link></BreadcrumbLink></BreadcrumbItem><BreadcrumbSeparator /></>}
-        <BreadcrumbItem className="min-w-0"><BreadcrumbPage className="max-w-36 truncate sm:max-w-none">{pageName}</BreadcrumbPage></BreadcrumbItem>
+        <BreadcrumbItem className="min-w-0"><BreadcrumbPage className="max-w-36 truncate sm:max-w-none">{pathname === "/dashboard" ? "Home" : pageName}</BreadcrumbPage></BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>
   );
