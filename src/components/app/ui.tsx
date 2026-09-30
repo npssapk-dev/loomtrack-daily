@@ -15,7 +15,7 @@ export function PageHeader({ title, subtitle, actions }: { title: string; subtit
 }
 
 export function Field({ label, htmlFor, children, error, className, required }: {
-  label: string; htmlFor?: string; children: ReactNode; error?: string; className?: string; required?: boolean;
+  label: string; htmlFor?: string; children: ReactNode; error?: string | undefined; className?: string; required?: boolean;
 }) {
   return (
     <div className={cn("space-y-1.5", className)}>
