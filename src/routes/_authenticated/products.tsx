@@ -7,7 +7,7 @@ export const Route = createFileRoute("/_authenticated/products")({
   head: () => ({ meta: [{ title: "Products — LoomTrack" }, { name: "description", content: "Manage fabric products, rates and default piece rates." }, { property: "og:title", content: "Products — LoomTrack" }, { property: "og:description", content: "Manage fabric products, rates and default piece rates." }] }),
   component: () => (
     <CrudPage<Product & { rate?: number | null; description?: string | null }>
-      title="Products" subtitle="Default piece rate is used in Daily Production" table="products" singular="Product" uniqueLabel="product code"
+      title="Products" table="products" singular="Product" uniqueLabel="product code"
       fields={[
         { key: "code", label: "Code", required: true },
         { key: "name", label: "Name", required: true },

@@ -6,7 +6,7 @@ export const Route = createFileRoute("/_authenticated/customers")({
   head: () => ({ meta: [{ title: "Customers — LoomTrack" }, { name: "description", content: "Manage the customers you deliver cloth to." }, { property: "og:title", content: "Customers — LoomTrack" }, { property: "og:description", content: "Manage the customers you deliver cloth to." }] }),
   component: () => (
     <CrudPage<Customer & { email?: string | null }>
-      title="Customers" subtitle="Buyers used in Sales & Delivery" table="customers" singular="Customer"
+      title="Customers" table="customers" singular="Customer"
       fields={[
         { key: "name", label: "Name", required: true },
         { key: "phone", label: "Phone", type: "tel" },
