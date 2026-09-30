@@ -18,8 +18,8 @@ export const Route = createFileRoute("/_authenticated/production-summary")({
 const PAGE = 25;
 const tip = { contentStyle: { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 6, fontSize: 12 } };
 
-function group<T>(rows: T[], key: (r: T) => string) {
-  const m = new Map<string, number>();
+function group<T, K extends string | number>(rows: T[], key: (r: T) => K) {
+  const m = new Map<K, number>();
   for (const r of rows) m.set(key(r), (m.get(key(r)) ?? 0) + Number((r as { quantity: number }).quantity || 0));
   return m;
 }
@@ -41,10 +41,10 @@ function SummaryPage() {
   const eMap = useMemo(() => new Map((emps.data ?? []).map((e) => [e.id, e])), [emps.data]);
   const mMap = useMemo(() => new Map((macs.data ?? []).map((m) => [m.id, m])), [macs.data]);
   const pMap = useMemo(() => new Map((prods.data ?? []).map((p) => [p.id, p])), [prods.data]);
-  const byNo = <T extends { record_no: number }>(l?: T[]) => [...(l ?? [])].sort((a, b) => a.record_no - b.record_no);
-  const eOpts = byNo(emps.data).map((e) => ({ value: e.id, label: `${e.record_no} · ${e.name}` }));
-  const mOpts = byNo(macs.data).map((m) => ({ value: m.id, label: `${m.record_no} · ${m.name}` }));
-  const pOpts = byNo(prods.data).map((p) => ({ value: p.id, label: `${p.record_no} · ${p.code} · ${p.name}` }));
+  const byNo = <T extends { id: number }>(l?: T[]) => [...(l ?? [])].sort((a, b) => a.id - b.id);
+  const eOpts = byNo(emps.data).map((e) => ({ value: String(e.id), label: `${e.id} · ${e.name}` }));
+  const mOpts = byNo(macs.data).map((m) => ({ value: String(m.id), label: `${m.id} · ${m.name}` }));
+  const pOpts = byNo(prods.data).map((p) => ({ value: String(p.id), label: `${p.id} · ${p.code} · ${p.name}` }));
 
   const s = useProductionSummaryRows(f);
   const rows = s.data ?? [];
@@ -53,7 +53,7 @@ function SummaryPage() {
   const macCount = new Set(rows.map((r) => r.machine_id)).size;
 
   const trend = useMemo(() => [...group(rows, (r) => r.production_date)].sort(([a], [b]) => a.localeCompare(b)).map(([d, q]) => ({ name: fmtDate(d), qty: q })), [rows]);
-  const top = (m: Map<string, number>, label: (id: string) => string) => [...m].map(([id, q]) => ({ name: label(id), qty: q })).sort((a, b) => b.qty - a.qty).slice(0, 10);
+  const top = (m: Map<number | string, number>, label: (id: number) => string) => [...m].map(([id, q]) => ({ name: label(Number(id)), qty: q })).sort((a, b) => b.qty - a.qty).slice(0, 10);
   const byEmp = useMemo(() => top(group(rows, (r) => r.employee_id), (id) => eMap.get(id)?.name ?? "Unknown"), [rows, eMap]);
   const byMac = useMemo(() => top(group(rows, (r) => r.machine_id), (id) => mMap.get(id)?.name ?? "Unknown"), [rows, mMap]);
   const byProd = useMemo(() => top(group(rows, (r) => r.product_id), (id) => pMap.get(id)?.code ?? "Unknown"), [rows, pMap]);
@@ -104,8 +104,8 @@ function SummaryPage() {
               return (
                 <tr key={r.id}>
                   <td className="whitespace-nowrap">{fmtDate(r.production_date)}</td>
-                  <td className="tabular-nums">{r.record_no}</td>
-                  <td>{e ? `${e.record_no} · ${e.name}` : "—"}</td>
+                  <td className="tabular-nums">{r.id}</td>
+                  <td>{e ? `${e.id} · ${e.name}` : "—"}</td>
                   <td>{mMap.get(r.machine_id)?.name ?? "—"}</td>
                   <td>{p ? `${p.code} · ${p.name}` : "—"}</td>
                   <td className="text-right tabular-nums">{qty(r.quantity)}</td>

@@ -15,31 +15,31 @@ export const Route = createFileRoute("/_authenticated/wages")({
 });
 
 const PAGE = 25;
-type Row = { emp: Employee | undefined; id: string; qty: number; wage: number; count: number };
+type Row = { emp: Employee | undefined; id: number; qty: number; wage: number; count: number };
 
 function WagesPage() {
   const today = todayStr();
   const [from, setFrom] = useState(monthStartStr());
   const [to, setTo] = useState(today);
   const [empId, setEmpId] = useState("");
-  const [view, setView] = useState<string | null>(null);
+  const [view, setView] = useState<number | null>(null);
 
   const employees = useEmployees();
   const empById = useMemo(() => new Map((employees.data ?? []).map((e) => [e.id, e])), [employees.data]);
-  const empOpts = useMemo(() => [...(employees.data ?? [])].sort((a, b) => a.record_no - b.record_no)
-    .map((e) => ({ value: e.id, label: `${e.record_no} · ${e.name}${e.is_active ? "" : " (inactive)"}` })), [employees.data]);
+  const empOpts = useMemo(() => [...(employees.data ?? [])].sort((a, b) => a.id - b.id)
+    .map((e) => ({ value: String(e.id), label: `${e.id} · ${e.name}${e.is_active ? "" : " (inactive)"}` })), [employees.data]);
 
   const rangeError = !from || !to ? "Both dates are required" : from > to ? "From date must be on or before To date" : to > today ? "To date cannot be in the future" : "";
   const wage = useWageRows(rangeError ? "" : from, rangeError ? "" : to, empId);
 
   const rows = useMemo<Row[]>(() => {
-    const m = new Map<string, Row>();
+    const m = new Map<number, Row>();
     for (const r of wage.data ?? []) {
       const x = m.get(r.employee_id) ?? { id: r.employee_id, emp: empById.get(r.employee_id), qty: 0, wage: 0, count: 0 };
       x.qty += Number(r.quantity) || 0; x.wage += Number(r.wage_amount) || 0; x.count += 1;
       m.set(r.employee_id, x);
     }
-    return [...m.values()].sort((a, b) => (a.emp?.record_no ?? Infinity) - (b.emp?.record_no ?? Infinity));
+    return [...m.values()].sort((a, b) => (a.emp?.id ?? Infinity) - (b.emp?.id ?? Infinity));
   }, [wage.data, empById]);
 
   const tot = rows.reduce((t, r) => ({ qty: t.qty + r.qty, wage: t.wage + r.wage, count: t.count + r.count }), { qty: 0, wage: 0, count: 0 });
@@ -74,7 +74,7 @@ function WagesPage() {
           >
             {rows.map((r) => (
               <tr key={r.id}>
-                <td className="tabular-nums">{r.emp?.record_no ?? "—"}</td>
+                <td className="tabular-nums">{r.emp?.id ?? "—"}</td>
                 <td>{r.emp?.name ?? "Unknown employee"}</td>
                 <td className="text-right tabular-nums">{qty(r.qty)}</td>
                 <td className="text-right tabular-nums font-medium">{money(r.wage)}</td>
@@ -86,12 +86,12 @@ function WagesPage() {
         )}
       </Panel>
 
-      {view && <EntriesDialog employeeId={view} emp={empById.get(view)} from={from} to={to} onClose={() => setView(null)} />}
+      {view !== null && <EntriesDialog employeeId={view} emp={empById.get(view)} from={from} to={to} onClose={() => setView(null)} />}
     </div>
   );
 }
 
-function EntriesDialog({ employeeId, emp, from, to, onClose }: { employeeId: string; emp: Employee | undefined; from: string; to: string; onClose: () => void }) {
+function EntriesDialog({ employeeId, emp, from, to, onClose }: { employeeId: number; emp: Employee | undefined; from: string; to: string; onClose: () => void }) {
   const [page, setPage] = useState(0);
   const q = useEmployeeEntriesPage(employeeId, from, to, page, PAGE);
   const machines = useMachines();
@@ -104,13 +104,13 @@ function EntriesDialog({ employeeId, emp, from, to, onClose }: { employeeId: str
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
-        <DialogHeader><DialogTitle>{emp ? `${emp.record_no} · ${emp.name}` : "Employee"} — {fmtDate(from)} to {fmtDate(to)}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{emp ? `${emp.id} · ${emp.name}` : "Employee"} — {fmtDate(from)} to {fmtDate(to)}</DialogTitle></DialogHeader>
         {q.isLoading ? <Empty>Loading…</Empty> : !q.data?.rows.length ? <Empty>No entries.</Empty> : (
           <DataTable head={<tr><th>Date</th><th>Prod. No.</th><th>Machine</th><th>Product</th><th className="text-right">Qty</th><th className="text-right">Rate</th><th className="text-right">Wage</th></tr>}>
             {q.data.rows.map((r) => (
               <tr key={r.id}>
                 <td className="whitespace-nowrap">{fmtDate(r.production_date)}</td>
-                <td className="tabular-nums">{r.record_no}</td>
+                <td className="tabular-nums">{r.id}</td>
                 <td>{mName.get(r.machine_id) ?? "—"}</td>
                 <td>{pName.get(r.product_id) ?? "—"}</td>
                 <td className="text-right tabular-nums">{qty(r.quantity)}</td>

@@ -37,9 +37,9 @@ function Settings() {
         <Panel title="Business">
           {b ? (
             <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
-              {[["Business No.", b.business_no], ["Name", b.company_name], ["Phone", b.phone], ["Email", b.email], ["Address", b.address],
+              {[["Business No.", b.id], ["Name", b.company_name], ["Phone", b.phone], ["Email", b.email], ["Address", b.address],
                 ["City", b.city], ["State / Province", b.state], ["Country", b.country], ["Postal Code", b.postal_code], ["Tax / Reg. ID", b.tax_id],
-                ["Your role", m?.role], ["Member No.", m?.business_user_no]].map(([k, v]) => (
+                ["Your role", m?.role], ["Member No.", m?.id]].map(([k, v]) => (
                 <div key={String(k)} className="flex justify-between gap-3 border-b py-1.5"><dt className="text-muted-foreground">{k}</dt><dd className="text-right font-medium">{v ?? "—"}</dd></div>
               ))}
             </dl>
@@ -59,7 +59,7 @@ function Settings() {
             <DataTable head={<tr><th>No.</th><th>Description</th><th>Direction</th><th>Status</th></tr>}>
               {types.map((t) => (
                 <tr key={t.id}>
-                  <td className="num">{t.payment_type_no}</td><td>{t.description}</td>
+                  <td className="num">{t.id}</td><td>{t.description}</td>
                   <td className={t.direction === "EXPENSE" ? "text-destructive" : "text-success"}>{t.direction}</td>
                   <td><StatusBadge status={t.is_active ? "Active" : "Inactive"} /></td>
                 </tr>
