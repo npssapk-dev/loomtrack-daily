@@ -138,7 +138,7 @@ function ProductionPage() {
 
   return (
     <>
-      <PageHeader title="Daily Production" subtitle="Piece-rate production and wages"
+      <PageHeader title="Daily Production"
         actions={<Button size="lg" onClick={openNew} disabled={!mastersLoaded || missing.length > 0}><Plus /> Add entry</Button>} />
 
       {mastersLoaded && missing.length > 0 && (
