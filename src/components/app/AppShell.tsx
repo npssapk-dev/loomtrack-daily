@@ -141,7 +141,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </SheetContent>
       </Sheet>
 
-      <main className="px-4 pb-24 lg:ml-64 lg:px-8 lg:pb-10">
+      <main className="px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] lg:ml-64 lg:px-8 lg:pb-10">
         <div className="mx-auto max-w-6xl">{children}</div>
       </main>
 
