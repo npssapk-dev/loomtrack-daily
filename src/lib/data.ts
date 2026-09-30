@@ -17,6 +17,25 @@ export type Product = { id: string; record_no: number; business_id: string; name
 export type Employee = { id: string; record_no: number; business_id: string; name: string; phone: string | null; join_date: string | null; is_active: boolean };
 export type Customer = { id: string; record_no: number; business_id: string; name: string; phone: string | null; address: string | null; is_active: boolean };
 export type Direction = "INCOME" | "EXPENSE";
+export type ProductionEntry = {
+  id: string; record_no: number; business_id: string; production_date: string; machine_id: string; product_id: string;
+  employee_id: string; quantity: number; piece_rate: number; wage_amount: number; notes: string | null; created_at: string;
+};
+
+export function useProductionEntries(from: string, to: string) {
+  const bid = useBusinessId();
+  return useQuery({
+    queryKey: ["production_entries", bid, from, to],
+    enabled: !!bid,
+    queryFn: async () => {
+      const { data, error } = await db.from("production_entries").select("*").eq("business_id", bid)
+        .gte("production_date", from).lte("production_date", to)
+        .order("production_date", { ascending: false }).order("created_at", { ascending: false }).limit(5000);
+      if (error) throw error;
+      return data as ProductionEntry[];
+    },
+  });
+}
 export type PaymentType = { id: string; payment_type_no: number; business_id: string | null; description: string; direction: Direction; is_active: boolean };
 export type Payment = {
   id: string; payment_no: number; business_id: string; payment_date: string; payment_type_id: string;
