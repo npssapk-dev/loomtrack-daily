@@ -21,6 +21,7 @@ import { Route as AuthenticatedExpensesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedIncomeRouteImport } from './routes/_authenticated/income'
 import { Route as AuthenticatedMachinesRouteImport } from './routes/_authenticated/machines'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedPaymentTypesRouteImport } from './routes/_authenticated/payment-types'
 import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedProductionRouteImport } from './routes/_authenticated/production'
 import { Route as AuthenticatedProductionSummaryRouteImport } from './routes/_authenticated/production-summary'
@@ -88,6 +89,12 @@ const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPaymentTypesRoute =
+  AuthenticatedPaymentTypesRouteImport.update({
+    id: '/payment-types',
+    path: '/payment-types',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
   id: '/payments',
   path: '/payments',
@@ -137,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/income': typeof AuthenticatedIncomeRoute
   '/machines': typeof AuthenticatedMachinesRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/payment-types': typeof AuthenticatedPaymentTypesRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/production': typeof AuthenticatedProductionRoute
   '/production-summary': typeof AuthenticatedProductionSummaryRoute
@@ -157,6 +165,7 @@ export interface FileRoutesByTo {
   '/income': typeof AuthenticatedIncomeRoute
   '/machines': typeof AuthenticatedMachinesRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/payment-types': typeof AuthenticatedPaymentTypesRoute
   '/payments': typeof AuthenticatedPaymentsRoute
   '/production': typeof AuthenticatedProductionRoute
   '/production-summary': typeof AuthenticatedProductionSummaryRoute
@@ -179,6 +188,7 @@ export interface FileRoutesById {
   '/_authenticated/income': typeof AuthenticatedIncomeRoute
   '/_authenticated/machines': typeof AuthenticatedMachinesRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/payment-types': typeof AuthenticatedPaymentTypesRoute
   '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
   '/_authenticated/production': typeof AuthenticatedProductionRoute
   '/_authenticated/production-summary': typeof AuthenticatedProductionSummaryRoute
@@ -201,6 +211,7 @@ export interface FileRouteTypes {
     | '/income'
     | '/machines'
     | '/onboarding'
+    | '/payment-types'
     | '/payments'
     | '/production'
     | '/production-summary'
@@ -221,6 +232,7 @@ export interface FileRouteTypes {
     | '/income'
     | '/machines'
     | '/onboarding'
+    | '/payment-types'
     | '/payments'
     | '/production'
     | '/production-summary'
@@ -242,6 +254,7 @@ export interface FileRouteTypes {
     | '/_authenticated/income'
     | '/_authenticated/machines'
     | '/_authenticated/onboarding'
+    | '/_authenticated/payment-types'
     | '/_authenticated/payments'
     | '/_authenticated/production'
     | '/_authenticated/production-summary'
@@ -344,6 +357,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/payment-types': {
+      id: '/_authenticated/payment-types'
+      path: '/payment-types'
+      fullPath: '/payment-types'
+      preLoaderRoute: typeof AuthenticatedPaymentTypesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/payments': {
       id: '/_authenticated/payments'
       path: '/payments'
@@ -405,6 +425,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedIncomeRoute: typeof AuthenticatedIncomeRoute
   AuthenticatedMachinesRoute: typeof AuthenticatedMachinesRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedPaymentTypesRoute: typeof AuthenticatedPaymentTypesRoute
   AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
   AuthenticatedProductionRoute: typeof AuthenticatedProductionRoute
   AuthenticatedProductionSummaryRoute: typeof AuthenticatedProductionSummaryRoute
@@ -423,6 +444,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIncomeRoute: AuthenticatedIncomeRoute,
   AuthenticatedMachinesRoute: AuthenticatedMachinesRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedPaymentTypesRoute: AuthenticatedPaymentTypesRoute,
   AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
   AuthenticatedProductionRoute: AuthenticatedProductionRoute,
   AuthenticatedProductionSummaryRoute: AuthenticatedProductionSummaryRoute,
