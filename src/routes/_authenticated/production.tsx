@@ -51,8 +51,8 @@ function ProductionPage() {
   const eBy = useMemo(() => Object.fromEntries((employees ?? []).map((x) => [x.id, x])), [employees]);
 
   // Active only, but keep the currently-selected (possibly now inactive) record when editing.
-  const opts = <T extends { id: string; id: number; is_active: boolean }>(list: T[] | undefined, keep: string | undefined, label: (x: T) => string) =>
-    (list ?? []).filter((x) => x.is_active || x.id === keep).map((x) => ({ value: x.id, label: `${x.id} · ${label(x)}` }));
+  const opts = <T extends { id: number; is_active: boolean }>(list: T[] | undefined, keep: string | undefined, label: (x: T) => string) =>
+    (list ?? []).filter((x) => x.is_active || String(x.id) === keep).map((x) => ({ value: String(x.id), label: `${x.id} · ${label(x)}` }));
   const machineOpts = opts(machines, form?.machine_id, (x) => x.name);
   const productOpts = opts(products, form?.product_id, (x) => `${x.name} (${x.code})`);
   const employeeOpts = opts(employees, form?.employee_id, (x) => x.name);
@@ -68,16 +68,16 @@ function ProductionPage() {
 
   function openNew() {
     // Auto-select when exactly one active option exists (new entries only; edits keep saved values).
-    const only = <T extends { id: string; is_active: boolean }>(list: T[] | undefined) => {
+    const only = <T extends { id: number; is_active: boolean }>(list: T[] | undefined) => {
       const a = (list ?? []).filter((x) => x.is_active);
-      return a.length === 1 ? a[0]!.id : "";
+      return a.length === 1 ? String(a[0]!.id) : "";
     };
     const product_id = only(products);
     setForm({ production_date: todayStr(), machine_id: only(machines), product_id, employee_id: only(employees), quantity: "",
       piece_rate: product_id ? String(pBy[product_id]?.default_piece_rate ?? 0) : "", notes: "" });
   }
   function openEdit(r: ProductionEntry) {
-    setForm({ id: r.id, entry: r, production_date: r.production_date, machine_id: r.machine_id, product_id: r.product_id, employee_id: r.employee_id,
+    setForm({ id: String(r.id), entry: r, production_date: r.production_date, machine_id: String(r.machine_id), product_id: String(r.product_id), employee_id: String(r.employee_id),
       quantity: String(r.quantity), piece_rate: String(r.piece_rate), notes: r.notes ?? "" });
   }
   function pickProduct(v: string) {
@@ -95,14 +95,14 @@ function ProductionPage() {
     const q = Number(form.quantity), rate = Number(form.piece_rate);
     if (!(q > 0)) { toast.error("Quantity must be greater than 0"); return; }
     if (form.piece_rate === "" || !(rate >= 0)) { toast.error("Piece rate cannot be negative"); return; }
-    const payload = { production_date: form.production_date, machine_id: form.machine_id, product_id: form.product_id,
-      employee_id: form.employee_id, quantity: q, piece_rate: rate, notes: form.notes.trim() || null };
+    const payload = { production_date: form.production_date, machine_id: Number(form.machine_id), product_id: Number(form.product_id),
+      employee_id: Number(form.employee_id), quantity: q, piece_rate: rate, notes: form.notes.trim() || null };
     savingRef.current = true;
     setSaving(true);
     try {
       // wage_amount is computed by the database trigger — not sent from the browser.
       const { error } = form.id
-        ? await db.from("production_entries").update(payload).eq("id", form.id).eq("business_id", bid)
+        ? await db.from("production_entries").update(payload).eq("id", Number(form.id)).eq("business_id", bid)
         : await db.from("production_entries").insert({ ...payload, business_id: bid });
       if (error) { toast.error(errMsg(error)); return; }
       toast.success(form.id ? "Entry updated" : "Production saved");

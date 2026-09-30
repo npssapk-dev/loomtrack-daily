@@ -42,9 +42,9 @@ function SummaryPage() {
   const mMap = useMemo(() => new Map((macs.data ?? []).map((m) => [m.id, m])), [macs.data]);
   const pMap = useMemo(() => new Map((prods.data ?? []).map((p) => [p.id, p])), [prods.data]);
   const byNo = <T extends { id: number }>(l?: T[]) => [...(l ?? [])].sort((a, b) => a.id - b.id);
-  const eOpts = byNo(emps.data).map((e) => ({ value: e.id, label: `${e.id} · ${e.name}` }));
-  const mOpts = byNo(macs.data).map((m) => ({ value: m.id, label: `${m.id} · ${m.name}` }));
-  const pOpts = byNo(prods.data).map((p) => ({ value: p.id, label: `${p.id} · ${p.code} · ${p.name}` }));
+  const eOpts = byNo(emps.data).map((e) => ({ value: String(e.id), label: `${e.id} · ${e.name}` }));
+  const mOpts = byNo(macs.data).map((m) => ({ value: String(m.id), label: `${m.id} · ${m.name}` }));
+  const pOpts = byNo(prods.data).map((p) => ({ value: String(p.id), label: `${p.id} · ${p.code} · ${p.name}` }));
 
   const s = useProductionSummaryRows(f);
   const rows = s.data ?? [];
@@ -53,7 +53,7 @@ function SummaryPage() {
   const macCount = new Set(rows.map((r) => r.machine_id)).size;
 
   const trend = useMemo(() => [...group(rows, (r) => r.production_date)].sort(([a], [b]) => a.localeCompare(b)).map(([d, q]) => ({ name: fmtDate(d), qty: q })), [rows]);
-  const top = (m: Map<string, number>, label: (id: string) => string) => [...m].map(([id, q]) => ({ name: label(id), qty: q })).sort((a, b) => b.qty - a.qty).slice(0, 10);
+  const top = (m: Map<number | string, number>, label: (id: number) => string) => [...m].map(([id, q]) => ({ name: label(Number(id)), qty: q })).sort((a, b) => b.qty - a.qty).slice(0, 10);
   const byEmp = useMemo(() => top(group(rows, (r) => r.employee_id), (id) => eMap.get(id)?.name ?? "Unknown"), [rows, eMap]);
   const byMac = useMemo(() => top(group(rows, (r) => r.machine_id), (id) => mMap.get(id)?.name ?? "Unknown"), [rows, mMap]);
   const byProd = useMemo(() => top(group(rows, (r) => r.product_id), (id) => pMap.get(id)?.code ?? "Unknown"), [rows, pMap]);

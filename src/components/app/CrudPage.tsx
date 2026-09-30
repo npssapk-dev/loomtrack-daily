@@ -15,7 +15,7 @@ export type CrudField = {
 };
 
 type Row = Record<string, unknown> & {
-  id: string; id: number; is_active: boolean;
+  id: number; is_active: boolean;
   created_at?: string | null; created_by?: string | null; updated_at?: string | null; updated_by?: string | null;
 };
 

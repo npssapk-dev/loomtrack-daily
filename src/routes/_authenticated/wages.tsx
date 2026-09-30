@@ -27,7 +27,7 @@ function WagesPage() {
   const employees = useEmployees();
   const empById = useMemo(() => new Map((employees.data ?? []).map((e) => [e.id, e])), [employees.data]);
   const empOpts = useMemo(() => [...(employees.data ?? [])].sort((a, b) => a.id - b.id)
-    .map((e) => ({ value: e.id, label: `${e.id} · ${e.name}${e.is_active ? "" : " (inactive)"}` })), [employees.data]);
+    .map((e) => ({ value: String(e.id), label: `${e.id} · ${e.name}${e.is_active ? "" : " (inactive)"}` })), [employees.data]);
 
   const rangeError = !from || !to ? "Both dates are required" : from > to ? "From date must be on or before To date" : to > today ? "To date cannot be in the future" : "";
   const wage = useWageRows(rangeError ? "" : from, rangeError ? "" : to, empId);

@@ -27,8 +27,8 @@ export function PaymentsPage({ direction, title }: { direction?: Direction; titl
   const empNames = nameMap(employees);
   const rows = (payments ?? []).filter((p) => !direction || typeById[p.payment_type_id]?.direction === direction);
   const typeOpts = (types ?? []).filter((t) => t.is_active && (!direction || t.direction === direction))
-    .map((t) => ({ value: t.id, label: `${t.id} · ${t.description}`, hint: t.direction }));
-  const empOpts = (employees ?? []).filter((e) => e.is_active).map((e) => ({ value: e.id, label: `${e.id} · ${e.name}` }));
+    .map((t) => ({ value: String(t.id), label: `${t.id} · ${t.description}`, hint: t.direction }));
+  const empOpts = (employees ?? []).filter((e) => e.is_active).map((e) => ({ value: String(e.id), label: `${e.id} · ${e.name}` }));
   const selDir = form ? typeById[form.payment_type_id]?.direction : undefined;
 
   async function save() {
