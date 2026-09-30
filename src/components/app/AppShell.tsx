@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  LayoutDashboard, Users, Cog, Package, Contact, BarChart3, Settings, Menu, LogOut, Tags, ChevronDown, Library, Factory, IndianRupee, Truck, PieChart, Wallet,
+  LayoutDashboard, Users, Cog, Package, Contact, BarChart3, Settings, MoreHorizontal, LogOut, Tags, ChevronDown, Library, Factory, IndianRupee, Truck, PieChart, Wallet,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -108,9 +108,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const crumb = (
     <Breadcrumb className="min-w-0">
       <BreadcrumbList className="flex-nowrap gap-1 text-xs sm:text-sm">
-        {pathname !== "/dashboard" && <><BreadcrumbItem><BreadcrumbLink asChild><Link to="/dashboard"><span className="hidden sm:inline">Home</span><LayoutDashboard className="h-3.5 w-3.5 sm:hidden" aria-label="Home" /></Link></BreadcrumbLink></BreadcrumbItem><BreadcrumbSeparator /></>}
         {masterName && <><BreadcrumbItem><BreadcrumbLink asChild><Link to="/masters"><span className="hidden sm:inline">Masters</span><Library className="h-3.5 w-3.5 sm:hidden" aria-label="Masters" /></Link></BreadcrumbLink></BreadcrumbItem><BreadcrumbSeparator /></>}
-        <BreadcrumbItem className="min-w-0"><BreadcrumbPage className="max-w-36 truncate sm:max-w-none">{pathname === "/dashboard" ? "Home" : pageName}</BreadcrumbPage></BreadcrumbItem>
+        <BreadcrumbItem className="min-w-0"><BreadcrumbPage className="max-w-40 truncate sm:max-w-none">{pageName}</BreadcrumbPage></BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>
   );
@@ -128,11 +127,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-30 flex h-[4.5rem] items-center gap-3 border-b bg-background px-4 lg:ml-64 lg:px-8">
         <div className="min-w-0 flex-1 py-1">
           <Brand />
-          <div className="mt-0.5 pl-[2.875rem]">{crumb}</div>
+          <div className="mt-0.5 w-fit max-w-full pl-[2.875rem] text-left">{crumb}</div>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setOpen(true)} className="shrink-0 lg:hidden" aria-label="Open menu">
-          <Menu className="h-6 w-6" />
-        </Button>
       </header>
 
       <Sheet open={open} onOpenChange={setOpen}>
@@ -149,7 +145,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="mx-auto max-w-6xl">{children}</div>
       </main>
 
-      <nav aria-label="Daily navigation" className="fixed inset-x-0 bottom-0 z-40 grid h-16 grid-cols-4 border-t bg-background/95 px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_12px_hsl(var(--foreground)/0.08)] backdrop-blur-sm lg:hidden">
+      <nav aria-label="Daily navigation" className="fixed inset-x-0 bottom-0 z-40 grid h-16 grid-cols-5 border-t bg-background/95 px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_12px_hsl(var(--foreground)/0.08)] backdrop-blur-sm lg:hidden">
         {DAILY_NAV.map((item) => (
           <Link
             key={item.to}
@@ -161,6 +157,16 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="max-w-full truncate">{item.label}</span>
           </Link>
         ))}
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => setOpen(true)}
+          className="flex h-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-none px-1 text-[11px] font-medium text-muted-foreground"
+          aria-label="More navigation"
+        >
+          <MoreHorizontal className="h-5 w-5" />
+          <span>More</span>
+        </Button>
       </nav>
     </div>
   );
