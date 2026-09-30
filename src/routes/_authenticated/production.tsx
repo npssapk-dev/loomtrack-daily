@@ -77,7 +77,7 @@ function ProductionPage() {
       piece_rate: product_id ? String(pBy[product_id]?.default_piece_rate ?? 0) : "", notes: "" });
   }
   function openEdit(r: ProductionEntry) {
-    setForm({ id: r.id, production_date: r.production_date, machine_id: r.machine_id, product_id: r.product_id, employee_id: r.employee_id,
+    setForm({ id: r.id, entry: r, production_date: r.production_date, machine_id: r.machine_id, product_id: r.product_id, employee_id: r.employee_id,
       quantity: String(r.quantity), piece_rate: String(r.piece_rate), notes: r.notes ?? "" });
   }
   function pickProduct(v: string) {
@@ -126,6 +126,7 @@ function ProductionPage() {
       const { error } = await db.from("production_entries").delete().eq("id", r.id).eq("business_id", bid);
       if (error) { toast.error(errMsg(error)); return; }
       toast.success("Entry deleted");
+      if (rows.length === 1 && page > 0) setPage(page - 1);
       invalidate();
     } catch (e) {
       toast.error(errMsg(e));
