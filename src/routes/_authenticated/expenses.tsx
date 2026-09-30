@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PageHeader, Panel, Empty } from "@/components/app/ui";
+import { PaymentsPage } from "@/components/app/PaymentsPage";
 export const Route = createFileRoute("/_authenticated/expenses")({
-  head: () => ({ meta: [{ title: "Expenses — LoomTrack" }, { name: "description", content: "Expenses in LoomTrack." }, { property: "og:title", content: "Expenses — LoomTrack" }, { property: "og:description", content: "Expenses in LoomTrack." }] }),
-  component: () => (<><PageHeader title="Expenses" /><Panel><Empty>This screen is being finished.</Empty></Panel></>),
+  head: () => ({ meta: [{ title: "Expenses — LoomTrack" }, { name: "description", content: "Expense payments in LoomTrack." }, { property: "og:title", content: "Expenses — LoomTrack" }, { property: "og:description", content: "Expense payments in LoomTrack." }] }),
+  component: () => <PaymentsPage direction="EXPENSE" title="Expenses" />,
 });

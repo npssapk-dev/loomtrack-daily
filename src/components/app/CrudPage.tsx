@@ -121,6 +121,10 @@ export function CrudPage<T extends Row>({
   );
 }
 
-export const activeCol = <T extends { active: boolean }>() => ({
-  label: "Status", render: (r: T) => <StatusBadge status={r.active ? "Active" : "Inactive"} />,
+export const activeCol = <T extends { is_active: boolean }>() => ({
+  label: "Status", render: (r: T) => <StatusBadge status={r.is_active ? "Active" : "Inactive"} />,
+});
+
+export const recordNoCol = <T extends { record_no: number }>() => ({
+  label: "No.", className: "num w-20", render: (r: T) => r.record_no,
 });
