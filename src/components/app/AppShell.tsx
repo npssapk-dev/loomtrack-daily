@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  LayoutDashboard, Users, Cog, Package, Contact, BarChart3, Settings, Menu, LogOut, Tags, ChevronDown, Library,
+  LayoutDashboard, Users, Cog, Package, Contact, BarChart3, Settings, Menu, LogOut, Tags, ChevronDown, Library, Factory, IndianRupee, Truck,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,13 @@ const MASTERS = [
   { to: "/machines", label: "Machines", icon: Cog },
   { to: "/products", label: "Products", icon: Package },
   { to: "/payment-types", label: "Payment Types", icon: Tags },
+] as const;
+
+const DAILY_NAV = [
+  { to: "/dashboard", label: "Home", icon: LayoutDashboard },
+  { to: "/production", label: "Production", icon: Factory },
+  { to: "/payments", label: "Income & Exp", icon: IndianRupee },
+  { to: "/deliveries", label: "Sales", icon: Truck },
 ] as const;
 
 const PAGE_NAMES: Record<string, string> = {
@@ -105,17 +112,18 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen">
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col bg-sidebar p-4 text-sidebar-foreground lg:flex">
-        <div className="mb-6 px-1"><Brand name={settings?.business_name} /></div>
+        {settings?.business_name && <p className="mb-5 truncate px-3 pt-2 text-sm font-medium text-sidebar-foreground/70">{settings.business_name}</p>}
         <div className="flex-1 overflow-y-auto">{navList}</div>
         <Button variant="ghost" onClick={signOut} className="mt-4 h-auto justify-start gap-3 px-3 py-2.5 text-sm font-normal text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground">
           <LogOut className="h-4 w-4" /> Sign out
         </Button>
       </aside>
 
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-background px-4 lg:ml-64 lg:px-8">
-        <div className="min-w-0 flex-1">{crumb}</div>
-        <div className="h-6 w-px bg-border" aria-hidden="true" />
-        <div className="shrink-0 scale-90 origin-right"><Brand /></div>
+      <header className="sticky top-0 z-30 flex h-[4.5rem] items-center gap-3 border-b bg-background px-4 lg:ml-64 lg:px-8">
+        <div className="min-w-0 flex-1 py-1">
+          <Brand />
+          <div className="mt-0.5 pl-[2.875rem]">{crumb}</div>
+        </div>
         <Button variant="ghost" size="icon" onClick={() => setOpen(true)} className="shrink-0 lg:hidden" aria-label="Open menu">
           <Menu className="h-6 w-6" />
         </Button>
@@ -131,9 +139,23 @@ export function AppShell({ children }: { children: ReactNode }) {
         </SheetContent>
       </Sheet>
 
-      <main className="px-4 pb-10 lg:ml-64 lg:px-8">
+      <main className="px-4 pb-24 lg:ml-64 lg:px-8 lg:pb-10">
         <div className="mx-auto max-w-6xl">{children}</div>
       </main>
+
+      <nav aria-label="Daily navigation" className="fixed inset-x-0 bottom-0 z-40 grid h-16 grid-cols-4 border-t bg-background/95 px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_12px_hsl(var(--foreground)/0.08)] backdrop-blur-sm lg:hidden">
+        {DAILY_NAV.map((item) => (
+          <Link
+            key={item.to}
+            to={item.to}
+            activeOptions={{ exact: true }}
+            className="flex min-w-0 flex-col items-center justify-center gap-0.5 px-1 text-[11px] font-medium text-muted-foreground transition-colors data-[status=active]:text-primary"
+          >
+            <item.icon className="h-5 w-5" />
+            <span className="max-w-full truncate">{item.label}</span>
+          </Link>
+        ))}
+      </nav>
     </div>
   );
 }
