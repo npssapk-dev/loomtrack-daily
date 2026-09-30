@@ -4,12 +4,12 @@ import { cn } from "@/lib/utils";
 
 export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: string | undefined; actions?: ReactNode }) {
   return (
-    <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <h1 className="text-3xl font-semibold leading-tight">{title}</h1>
+    <div className="sticky top-14 z-20 -mx-4 mb-4 flex min-h-16 flex-wrap items-center justify-between gap-2 border-b bg-background/95 px-4 py-2.5 backdrop-blur-sm lg:-mx-8 lg:px-8">
+      <div className="min-w-0 flex-1">
+        <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">{title}</h1>
         {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
       </div>
-      {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
+      {actions && <div className="ml-auto flex shrink-0 flex-wrap justify-end gap-2">{actions}</div>}
     </div>
   );
 }
@@ -80,7 +80,7 @@ export function DataTable({ head, children, foot }: { head: ReactNode; children:
   return (
     <div className="-mx-4 overflow-x-auto">
       <table className="w-full min-w-[560px] text-sm">
-        <thead className="border-b bg-muted/60 text-left text-xs uppercase tracking-wide text-muted-foreground [&_th]:px-4 [&_th]:py-2.5 [&_th]:font-medium">
+        <thead className="sticky top-0 z-10 border-b bg-muted text-left text-xs uppercase tracking-wide text-muted-foreground [&_th]:px-4 [&_th]:py-2.5 [&_th]:font-medium">
           {head}
         </thead>
         <tbody className="[&_td]:px-4 [&_td]:py-2.5 [&_tr]:border-b [&_tr:last-child]:border-0">{children}</tbody>
