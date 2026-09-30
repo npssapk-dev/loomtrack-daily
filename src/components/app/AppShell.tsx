@@ -2,36 +2,30 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  LayoutDashboard, Factory, Users, IndianRupee, Receipt, Cog, Package, Contact, Truck, BarChart3, Settings, Menu, LogOut, Wallet, PieChart, Tags,
+  LayoutDashboard, Users, Cog, Package, Contact, BarChart3, Settings, Menu, LogOut, Tags, ChevronDown, Library,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { supabase } from "@/lib/backend";
 import { useSettings } from "@/lib/data";
 import { setCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-const NAV = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/production", label: "Daily Production", icon: Factory },
+const MASTERS = [
+  { to: "/customers", label: "Customers", icon: Contact },
   { to: "/employees", label: "Employees", icon: Users },
-  { to: "/production-summary", label: "Production Summary", icon: PieChart },
-  { to: "/wages", label: "Employee Wages", icon: Wallet },
-  { to: "/payments", label: "Income & Expenses", icon: IndianRupee },
-  { to: "/deliveries", label: "Sales & Delivery", icon: Truck },
   { to: "/machines", label: "Machines", icon: Cog },
   { to: "/products", label: "Products", icon: Package },
-  { to: "/customers", label: "Customers", icon: Contact },
   { to: "/payment-types", label: "Payment Types", icon: Tags },
-  { to: "/reports", label: "Reports", icon: BarChart3 },
-  { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
-const BOTTOM = [
-  { to: "/dashboard", label: "Home", icon: LayoutDashboard },
-  { to: "/production", label: "Production", icon: Factory },
-  { to: "/payments", label: "Payments", icon: Receipt },
-  { to: "/deliveries", label: "Sales", icon: Truck },
-] as const;
+const PAGE_NAMES: Record<string, string> = {
+  "/dashboard": "Dashboard", "/customers": "Customers", "/employees": "Employees", "/machines": "Machines", "/products": "Products",
+  "/payment-types": "Payment Types", "/production": "Daily Production", "/production-summary": "Production Summary", "/wages": "Employee Wages",
+  "/payments": "Income & Expenses", "/deliveries": "Sales & Delivery", "/reports": "Reports", "/settings": "Settings",
+};
 
 function Brand({ name }: { name?: string | undefined }) {
   return (
@@ -48,12 +42,15 @@ function Brand({ name }: { name?: string | undefined }) {
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const onMaster = MASTERS.some((item) => pathname.startsWith(item.to));
+  const [mastersOpen, setMastersOpen] = useState(onMaster);
   const { data: settings } = useSettings();
   const qc = useQueryClient();
   const navigate = useNavigate();
 
   useEffect(() => { if (settings) setCurrency(settings.currency); }, [settings]);
   useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => { if (onMaster) setMastersOpen(true); }, [onMaster]);
 
   async function signOut() {
     await qc.cancelQueries();
@@ -62,20 +59,47 @@ export function AppShell({ children }: { children: ReactNode }) {
     navigate({ to: "/auth", replace: true });
   }
 
+  const navLink = (item: { to: "/dashboard" | "/customers" | "/employees" | "/machines" | "/products" | "/payment-types" | "/reports" | "/settings"; label: string; icon: typeof LayoutDashboard }, nested = false) => {
+    const active = pathname.startsWith(item.to);
+    return (
+      <Link key={item.to} to={item.to}
+        className={cn("flex items-center gap-3 rounded-md px-3 py-2.5 text-[15px] transition-colors", nested && "ml-3 py-2 text-sm",
+          active ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground shadow-[inset_3px_0_0_var(--sidebar-primary)]" : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60")}>
+        <item.icon className="h-[18px] w-[18px]" />
+        {item.label}
+      </Link>
+    );
+  };
+
   const navList = (
     <nav className="flex flex-col gap-0.5">
-      {NAV.map((n) => {
-        const active = pathname.startsWith(n.to);
-        return (
-          <Link key={n.to} to={n.to}
-            className={cn("flex items-center gap-3 rounded-md px-3 py-2.5 text-[15px] transition-colors",
-              active ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground shadow-[inset_3px_0_0_var(--sidebar-primary)]" : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60")}>
-            <n.icon className="h-[18px] w-[18px]" />
-            {n.label}
-          </Link>
-        );
-      })}
+      {navLink({ to: "/dashboard", label: "Dashboard", icon: LayoutDashboard })}
+      <Collapsible open={mastersOpen} onOpenChange={setMastersOpen}>
+        <CollapsibleTrigger asChild>
+          <Button variant="ghost" className={cn("h-auto w-full justify-start gap-3 px-3 py-2.5 text-[15px] font-normal text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground", onMaster && "font-medium text-sidebar-accent-foreground")}>
+            <Library className="h-[18px] w-[18px]" />
+            <span className="flex-1 text-left">Masters</span>
+            <ChevronDown className={cn("h-4 w-4 transition-transform", mastersOpen && "rotate-180")} />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-0.5 pt-0.5">
+          {MASTERS.map((item) => navLink(item, true))}
+        </CollapsibleContent>
+      </Collapsible>
+      {navLink({ to: "/reports", label: "Reports", icon: BarChart3 })}
+      {navLink({ to: "/settings", label: "Settings", icon: Settings })}
     </nav>
+  );
+
+  const pageName = PAGE_NAMES[pathname] ?? "LoomTrack";
+  const masterName = onMaster ? pageName : null;
+  const crumb = (
+    <Breadcrumb className="min-w-0">
+      <BreadcrumbList className="flex-nowrap gap-1 text-xs sm:text-sm">
+        {masterName && <><BreadcrumbItem><span className="text-muted-foreground">Masters</span></BreadcrumbItem><BreadcrumbSeparator /></>}
+        <BreadcrumbItem className="min-w-0"><BreadcrumbPage className="max-w-36 truncate sm:max-w-none">{pageName}</BreadcrumbPage></BreadcrumbItem>
+      </BreadcrumbList>
+    </Breadcrumb>
   );
 
   return (
@@ -83,45 +107,33 @@ export function AppShell({ children }: { children: ReactNode }) {
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col bg-sidebar p-4 text-sidebar-foreground lg:flex">
         <div className="mb-6 px-1"><Brand name={settings?.business_name} /></div>
         <div className="flex-1 overflow-y-auto">{navList}</div>
-        <button onClick={signOut} className="mt-4 flex items-center gap-3 rounded-md px-3 py-2.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent/60">
+        <Button variant="ghost" onClick={signOut} className="mt-4 h-auto justify-start gap-3 px-3 py-2.5 text-sm font-normal text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground">
           <LogOut className="h-4 w-4" /> Sign out
-        </button>
+        </Button>
       </aside>
 
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between bg-sidebar px-4 text-sidebar-foreground lg:hidden">
-        <Brand name={settings?.business_name} />
-        <button onClick={() => setOpen(true)} className="grid h-11 w-11 place-items-center rounded-md hover:bg-sidebar-accent" aria-label="Open menu">
+      <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-background px-4 lg:ml-64 lg:px-8">
+        <div className="min-w-0 flex-1">{crumb}</div>
+        <div className="h-6 w-px bg-border" aria-hidden="true" />
+        <div className="shrink-0 scale-90 origin-right"><Brand /></div>
+        <Button variant="ghost" size="icon" onClick={() => setOpen(true)} className="shrink-0 lg:hidden" aria-label="Open menu">
           <Menu className="h-6 w-6" />
-        </button>
+        </Button>
       </header>
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="left" className="w-72 border-sidebar-border bg-sidebar p-4 text-sidebar-foreground">
           <SheetHeader className="mb-4 p-0"><SheetTitle className="text-sidebar-foreground"><Brand name={settings?.business_name} /></SheetTitle></SheetHeader>
           {navList}
-          <button onClick={signOut} className="mt-4 flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent/60">
+          <Button variant="ghost" onClick={signOut} className="mt-4 h-auto w-full justify-start gap-3 px-3 py-2.5 text-sm font-normal text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground">
             <LogOut className="h-4 w-4" /> Sign out
-          </button>
+          </Button>
         </SheetContent>
       </Sheet>
 
-      <main className="px-4 pb-28 pt-5 lg:ml-64 lg:px-8 lg:pb-10 lg:pt-8">
+      <main className="px-4 pb-10 lg:ml-64 lg:px-8">
         <div className="mx-auto max-w-6xl">{children}</div>
       </main>
-
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t bg-card pb-[env(safe-area-inset-bottom)] lg:hidden">
-        {BOTTOM.map((n) => {
-          const active = pathname.startsWith(n.to);
-          return (
-            <Link key={n.to} to={n.to} className={cn("flex h-16 flex-col items-center justify-center gap-1 text-xs", active ? "font-semibold text-primary" : "text-muted-foreground")}>
-              <n.icon className="h-5 w-5" />{n.label}
-            </Link>
-          );
-        })}
-        <button onClick={() => setOpen(true)} className="flex h-16 flex-col items-center justify-center gap-1 text-xs text-muted-foreground">
-          <Menu className="h-5 w-5" />More
-        </button>
-      </nav>
     </div>
   );
 }
