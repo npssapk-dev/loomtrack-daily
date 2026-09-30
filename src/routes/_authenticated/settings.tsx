@@ -84,7 +84,7 @@ function Settings() {
       <div className="space-y-5">
         <Panel title="Business profile">
           {form ? (
-            <form className="grid gap-3 p-4 sm:grid-cols-2" onSubmit={(ev) => { ev.preventDefault(); void save(); }} noValidate>
+            <form className="grid gap-3 sm:grid-cols-2" onSubmit={(ev) => { ev.preventDefault(); void save(); }} noValidate>
               {FIELDS.slice(0, 2).map((x) => (
                 <Field key={x.k} label={x.l} htmlFor={`s-${x.k}`} required={"req" in x} error={errs[x.k]}>
                   <Input id={`s-${x.k}`} type={"type" in x ? x.type : "text"} maxLength={x.max} required={"req" in x} aria-required={"req" in x} value={form[x.k]} onChange={(ev) => set(x.k, ev.target.value)} />
@@ -106,14 +106,14 @@ function Settings() {
           ) : <Empty>Loading…</Empty>}
         </Panel>
         <Panel title="Your account">
-          <dl className="grid gap-x-6 gap-y-2 p-4 text-sm sm:grid-cols-2">
+          <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
             {[["Name", me.data?.name], ["Email", me.data?.email], ["Role", m?.role]].map(([k, v]) => (
               <div key={String(k)} className="flex justify-between gap-3 border-b py-1.5"><dt className="text-muted-foreground">{k}</dt><dd className="min-w-0 truncate text-right font-medium">{v || "—"}</dd></div>
             ))}
           </dl>
         </Panel>
         <Panel title="Payment types">
-          <p className="p-4 text-sm">Add, edit or deactivate payment types on the <Link to="/payment-types" className="font-semibold underline">Payment Types</Link> page.</p>
+          <p className="text-sm">Add, edit or deactivate payment types on the <Link to="/payment-types" className="font-semibold underline">Payment Types</Link> page.</p>
         </Panel>
       </div>
     </>

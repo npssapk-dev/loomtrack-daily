@@ -176,7 +176,7 @@ function ReportsPage() {
         </Tabs>
 
         <Panel>
-          <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <Field label="From" htmlFor="rf" required error={dateErr || undefined}>
               <Input id="rf" type="date" required max={today} value={from} onChange={(e) => { setFrom(e.target.value); setPage(0); }} />
             </Field>
@@ -202,7 +202,7 @@ function ReportsPage() {
             : q.isLoading ? <Empty>Loading…</Empty>
             : !report.rows.length ? <Empty>No records for the selected period and filters.</Empty>
             : (
-              <div className="px-4">
+              <div>
                 <DataTable
                   head={<tr>{report.cols.map((c) => <th key={c.h} className={c.num ? "text-right" : ""}>{c.h}</th>)}</tr>}
                   foot={<tr className="font-semibold">{report.cols.map((c, i) => <td key={c.h} className={`px-4 py-2.5 ${c.num ? "num text-right" : ""}`}>{show(c, report.foot[i] ?? "")}</td>)}</tr>}
