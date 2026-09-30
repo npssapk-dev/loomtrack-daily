@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DataTable, Empty, Field, PageHeader, Panel, StatusBadge } from "./ui";
-import { db, errMsg, useInvalidateAll } from "@/lib/data";
+import { db, errMsg, useBusinessId, useInvalidateAll } from "@/lib/data";
 
 export type CrudField = {
   key: string; label: string; type?: "text" | "number" | "date" | "textarea" | "bool";
@@ -27,6 +27,7 @@ export function CrudPage<T extends Row>({
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
   const [saving, setSaving] = useState(false);
   const invalidate = useInvalidateAll();
+  const bid = useBusinessId();
 
   const blank = () => Object.fromEntries(fields.map((f) => [f.key, f.defaultValue ?? (f.type === "bool" ? true : "")]));
 
@@ -44,7 +45,7 @@ export function CrudPage<T extends Row>({
       payload[f.key] = f.type === "number" ? Number(v || 0) : v === "" ? null : v;
     }
     setSaving(true);
-    const q = editing["id"] ? db.from(table).update(payload).eq("id", editing["id"]) : db.from(table).insert(payload);
+    const q = editing["id"] ? db.from(table).update(payload).eq("id", editing["id"]).eq("business_id", bid) : db.from(table).insert({ ...payload, business_id: bid });
     const { error } = await q;
     setSaving(false);
     if (error) {
@@ -58,7 +59,7 @@ export function CrudPage<T extends Row>({
 
   async function remove(r: T) {
     if (!confirm(`Delete this ${singular.toLowerCase()}?`)) return;
-    const { error } = await db.from(table).delete().eq("id", r.id);
+    const { error } = await db.from(table).delete().eq("id", r.id).eq("business_id", bid);
     if (error) {
       toast.error(error.code === "23503" ? `This ${singular.toLowerCase()} is used in records. Mark it Inactive instead.` : errMsg(error));
       return;
