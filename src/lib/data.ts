@@ -17,10 +17,67 @@ export type Product = { id: string; record_no: number; business_id: string; name
 export type Employee = { id: string; record_no: number; business_id: string; name: string; phone: string | null; join_date: string | null; is_active: boolean };
 export type Customer = { id: string; record_no: number; business_id: string; name: string; phone: string | null; address: string | null; is_active: boolean };
 export type Direction = "INCOME" | "EXPENSE";
+// record_no, wage_amount and the audit fields are set by database defaults/triggers — never by the browser.
 export type ProductionEntry = {
   id: string; record_no: number; business_id: string; production_date: string; machine_id: string; product_id: string;
   employee_id: string; quantity: number; piece_rate: number; wage_amount: number; notes: string | null; created_at: string;
+  updated_at: string | null; created_by: string | null; updated_by: string | null;
 };
+
+/** One server-side page of production, newest first, filtered by date range before paging. */
+export function useProductionPage(from: string, to: string, page: number, pageSize = 25) {
+  const bid = useBusinessId();
+  return useQuery({
+    queryKey: ["production_entries", bid, "page", from, to, page, pageSize],
+    enabled: !!bid,
+    placeholderData: (prev) => prev,
+    queryFn: async () => {
+      const start = page * pageSize;
+      const { data, error, count } = await db.from("production_entries").select("*", { count: "exact" }).eq("business_id", bid)
+        .gte("production_date", from).lte("production_date", to)
+        .order("production_date", { ascending: false }).order("created_at", { ascending: false }).order("record_no", { ascending: false })
+        .range(start, start + pageSize - 1);
+      if (error) throw error;
+      return { rows: data as ProductionEntry[], total: (count as number | null) ?? 0 };
+    },
+  });
+}
+
+/** Totals for the full date range. The database disallows SQL aggregates via the API, so only two numeric columns are fetched. */
+export function useProductionTotals(from: string, to: string) {
+  const bid = useBusinessId();
+  return useQuery({
+    queryKey: ["production_entries", bid, "totals", from, to],
+    enabled: !!bid,
+    queryFn: async () => {
+      const { data, error } = await db.from("production_entries").select("quantity,wage_amount").eq("business_id", bid)
+        .gte("production_date", from).lte("production_date", to).limit(100000);
+      if (error) throw error;
+      const rows = (data ?? []) as { quantity: number; wage_amount: number }[];
+      return { qty: sum(rows, (r) => r.quantity), wages: sum(rows, (r) => r.wage_amount), count: rows.length };
+    },
+  });
+}
+
+/** Resolve auth user ids to a readable name (profiles.full_name → email). Unreadable profiles fall back to the signed-in user's email or "User". */
+export function useUserNames(ids: (string | null | undefined)[]) {
+  const uniq = [...new Set(ids.filter((x): x is string => !!x))].sort();
+  return useQuery({
+    queryKey: ["profiles", uniq],
+    enabled: uniq.length > 0,
+    queryFn: async () => {
+      const map: Record<string, string> = {};
+      const { data } = await db.from("profiles").select("user_id,full_name,email").in("user_id", uniq);
+      (data ?? []).forEach((p: { user_id: string; full_name: string | null; email: string | null }) => {
+        const n = p.full_name?.trim() || p.email?.trim();
+        if (n) map[p.user_id] = n;
+      });
+      const { data: u } = await supabase.auth.getUser();
+      if (u.user && !map[u.user.id]) map[u.user.id] = (u.user.user_metadata?.["full_name"] as string | undefined) || u.user.email || "You";
+      return map;
+    },
+  });
+}
 
 export function useProductionEntries(from: string, to: string) {
   const bid = useBusinessId();
