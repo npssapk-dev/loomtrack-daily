@@ -22,6 +22,7 @@ import { Route as AuthenticatedIncomeRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedMachinesRouteImport } from './routes/_authenticated/machines'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedProductionRouteImport } from './routes/_authenticated/production'
+import { Route as AuthenticatedProductionSummaryRouteImport } from './routes/_authenticated/production-summary'
 import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated/products'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
@@ -91,6 +92,12 @@ const AuthenticatedProductionRoute = AuthenticatedProductionRouteImport.update({
   path: '/production',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProductionSummaryRoute =
+  AuthenticatedProductionSummaryRouteImport.update({
+    id: '/production-summary',
+    path: '/production-summary',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProductsRoute = AuthenticatedProductsRouteImport.update({
   id: '/products',
   path: '/products',
@@ -125,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/machines': typeof AuthenticatedMachinesRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/production': typeof AuthenticatedProductionRoute
+  '/production-summary': typeof AuthenticatedProductionSummaryRoute
   '/products': typeof AuthenticatedProductsRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -143,6 +151,7 @@ export interface FileRoutesByTo {
   '/machines': typeof AuthenticatedMachinesRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/production': typeof AuthenticatedProductionRoute
+  '/production-summary': typeof AuthenticatedProductionSummaryRoute
   '/products': typeof AuthenticatedProductsRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -163,6 +172,7 @@ export interface FileRoutesById {
   '/_authenticated/machines': typeof AuthenticatedMachinesRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/production': typeof AuthenticatedProductionRoute
+  '/_authenticated/production-summary': typeof AuthenticatedProductionSummaryRoute
   '/_authenticated/products': typeof AuthenticatedProductsRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/machines'
     | '/onboarding'
     | '/production'
+    | '/production-summary'
     | '/products'
     | '/reports'
     | '/settings'
@@ -201,6 +212,7 @@ export interface FileRouteTypes {
     | '/machines'
     | '/onboarding'
     | '/production'
+    | '/production-summary'
     | '/products'
     | '/reports'
     | '/settings'
@@ -220,6 +232,7 @@ export interface FileRouteTypes {
     | '/_authenticated/machines'
     | '/_authenticated/onboarding'
     | '/_authenticated/production'
+    | '/_authenticated/production-summary'
     | '/_authenticated/products'
     | '/_authenticated/reports'
     | '/_authenticated/settings'
@@ -326,6 +339,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProductionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/production-summary': {
+      id: '/_authenticated/production-summary'
+      path: '/production-summary'
+      fullPath: '/production-summary'
+      preLoaderRoute: typeof AuthenticatedProductionSummaryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/products': {
       id: '/_authenticated/products'
       path: '/products'
@@ -367,6 +387,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMachinesRoute: typeof AuthenticatedMachinesRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedProductionRoute: typeof AuthenticatedProductionRoute
+  AuthenticatedProductionSummaryRoute: typeof AuthenticatedProductionSummaryRoute
   AuthenticatedProductsRoute: typeof AuthenticatedProductsRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -383,6 +404,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMachinesRoute: AuthenticatedMachinesRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedProductionRoute: AuthenticatedProductionRoute,
+  AuthenticatedProductionSummaryRoute: AuthenticatedProductionSummaryRoute,
   AuthenticatedProductsRoute: AuthenticatedProductsRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
