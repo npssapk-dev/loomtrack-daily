@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -32,6 +32,9 @@ function ProductionPage() {
   const invalidate = useInvalidateAll();
   const [form, setForm] = useState<Form | null>(null);
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false); // synchronous lock: blocks rapid double-click / Enter before re-render
+  const deletingRef = useRef(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const mBy = useMemo(() => Object.fromEntries((machines ?? []).map((x) => [x.id, x])), [machines]);
   const pBy = useMemo(() => Object.fromEntries((products ?? []).map((x) => [x.id, x])), [products]);
@@ -54,7 +57,14 @@ function ProductionPage() {
   const liveWage = form ? round2(Number(form.quantity || 0) * Number(form.piece_rate || 0)) : 0;
 
   function openNew() {
-    setForm({ production_date: todayStr(), machine_id: "", product_id: "", employee_id: "", quantity: "", piece_rate: "", notes: "" });
+    // Auto-select when exactly one active option exists (new entries only; edits keep saved values).
+    const only = <T extends { id: string; is_active: boolean }>(list: T[] | undefined) => {
+      const a = (list ?? []).filter((x) => x.is_active);
+      return a.length === 1 ? a[0]!.id : "";
+    };
+    const product_id = only(products);
+    setForm({ production_date: todayStr(), machine_id: only(machines), product_id, employee_id: only(employees), quantity: "",
+      piece_rate: product_id ? String(pBy[product_id]?.default_piece_rate ?? 0) : "", notes: "" });
   }
   function openEdit(r: ProductionEntry) {
     setForm({ id: r.id, production_date: r.production_date, machine_id: r.machine_id, product_id: r.product_id, employee_id: r.employee_id,
@@ -68,31 +78,50 @@ function ProductionPage() {
   }
 
   async function save() {
-    if (!form || !bid) return;
+    if (!form || !bid || savingRef.current) return;
+    if (!form.production_date) { toast.error("Select a production date"); return; }
+    if (form.production_date > todayStr()) { toast.error("Production date cannot be in the future"); return; }
     if (!form.machine_id || !form.product_id || !form.employee_id) { toast.error("Select machine, product and employee"); return; }
     const q = Number(form.quantity), rate = Number(form.piece_rate);
     if (!(q > 0)) { toast.error("Quantity must be greater than 0"); return; }
     if (form.piece_rate === "" || !(rate >= 0)) { toast.error("Piece rate cannot be negative"); return; }
     const payload = { production_date: form.production_date, machine_id: form.machine_id, product_id: form.product_id,
       employee_id: form.employee_id, quantity: q, piece_rate: rate, notes: form.notes.trim() || null };
+    savingRef.current = true;
     setSaving(true);
-    // wage_amount is computed by the database trigger — not sent from the browser.
-    const { error } = form.id
-      ? await db.from("production_entries").update(payload).eq("id", form.id).eq("business_id", bid)
-      : await db.from("production_entries").insert({ ...payload, business_id: bid });
-    setSaving(false);
-    if (error) { toast.error(errMsg(error)); return; }
-    toast.success(form.id ? "Entry updated" : "Production saved");
-    setForm(null);
-    invalidate();
+    try {
+      // wage_amount is computed by the database trigger — not sent from the browser.
+      const { error } = form.id
+        ? await db.from("production_entries").update(payload).eq("id", form.id).eq("business_id", bid)
+        : await db.from("production_entries").insert({ ...payload, business_id: bid });
+      if (error) { toast.error(errMsg(error)); return; }
+      toast.success(form.id ? "Entry updated" : "Production saved");
+      setForm(null);
+      invalidate();
+    } catch (e) {
+      toast.error(errMsg(e));
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
+    }
   }
 
   async function remove(r: ProductionEntry) {
+    if (deletingRef.current) return;
     if (!confirm(`Delete production entry ${r.record_no}?`)) return;
-    const { error } = await db.from("production_entries").delete().eq("id", r.id).eq("business_id", bid);
-    if (error) { toast.error(errMsg(error)); return; }
-    toast.success("Entry deleted");
-    invalidate();
+    deletingRef.current = true;
+    setDeletingId(r.id);
+    try {
+      const { error } = await db.from("production_entries").delete().eq("id", r.id).eq("business_id", bid);
+      if (error) { toast.error(errMsg(error)); return; }
+      toast.success("Entry deleted");
+      invalidate();
+    } catch (e) {
+      toast.error(errMsg(e));
+    } finally {
+      deletingRef.current = false;
+      setDeletingId(null);
+    }
   }
 
   return (
@@ -133,7 +162,7 @@ function ProductionPage() {
                 <td className="max-w-40 truncate">{r.notes}</td>
                 <td className="whitespace-nowrap text-right">
                   <Button variant="ghost" size="icon" aria-label="Edit" onClick={() => openEdit(r)}><Pencil /></Button>
-                  <Button variant="ghost" size="icon" aria-label="Delete" onClick={() => remove(r)}><Trash2 className="text-destructive" /></Button>
+                  <Button variant="ghost" size="icon" aria-label="Delete" disabled={deletingId === r.id} onClick={() => remove(r)}><Trash2 className="text-destructive" /></Button>
                 </td>
               </tr>
             ))}
@@ -146,16 +175,18 @@ function ProductionPage() {
           <DialogHeader><DialogTitle>{form?.id ? "Edit production" : "Add production"}</DialogTitle></DialogHeader>
           {form && (
             <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save(); }}>
-              <Field label="Production date *" htmlFor="pdate"><Input id="pdate" type="date" className="h-12" value={form.production_date} onChange={(e) => setForm({ ...form, production_date: e.target.value })} /></Field>
-              <Field label="Machine *"><SearchSelect options={machineOpts} value={form.machine_id} onChange={(v) => setForm({ ...form, machine_id: v })} placeholder="Select machine" /></Field>
-              <Field label="Product *"><SearchSelect options={productOpts} value={form.product_id} onChange={pickProduct} placeholder="Select product" /></Field>
-              <Field label="Employee *"><SearchSelect options={employeeOpts} value={form.employee_id} onChange={(v) => setForm({ ...form, employee_id: v })} placeholder="Select employee" /></Field>
+              <Field label="Production date" htmlFor="pdate" required error={form.production_date > todayStr() ? "Production date cannot be in the future" : undefined}>
+                <Input id="pdate" type="date" required max={todayStr()} className="h-12" value={form.production_date} onChange={(e) => setForm({ ...form, production_date: e.target.value })} />
+              </Field>
+              <Field label="Machine" required><SearchSelect required options={machineOpts} value={form.machine_id} onChange={(v) => setForm({ ...form, machine_id: v })} placeholder="Select machine" /></Field>
+              <Field label="Product" required><SearchSelect required options={productOpts} value={form.product_id} onChange={pickProduct} placeholder="Select product" /></Field>
+              <Field label="Employee" required><SearchSelect required options={employeeOpts} value={form.employee_id} onChange={(v) => setForm({ ...form, employee_id: v })} placeholder="Select employee" /></Field>
               <div className="grid grid-cols-2 gap-3">
-                <Field label={`Quantity *${form.product_id && pBy[form.product_id] ? ` (${pBy[form.product_id]?.unit})` : ""}`} htmlFor="q">
-                  <Input id="q" type="number" step="0.01" min="0" inputMode="decimal" className="h-12 text-base" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} />
+                <Field label={`Quantity${form.product_id && pBy[form.product_id] ? ` (${pBy[form.product_id]?.unit})` : ""}`} htmlFor="q" required>
+                  <Input id="q" type="number" required step="0.01" min="0" inputMode="decimal" className="h-12 text-base" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} />
                 </Field>
-                <Field label="Piece rate *" htmlFor="rate">
-                  <Input id="rate" type="number" step="0.01" min="0" inputMode="decimal" className="h-12 text-base" value={form.piece_rate} onChange={(e) => setForm({ ...form, piece_rate: e.target.value })} />
+                <Field label="Piece rate" htmlFor="rate" required>
+                  <Input id="rate" type="number" required step="0.01" min="0" inputMode="decimal" className="h-12 text-base" value={form.piece_rate} onChange={(e) => setForm({ ...form, piece_rate: e.target.value })} />
                 </Field>
               </div>
               <div className="flex items-center justify-between rounded-md bg-muted px-4 py-3">
@@ -164,8 +195,8 @@ function ProductionPage() {
               </div>
               <Field label="Notes" htmlFor="notes"><Textarea id="notes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></Field>
               <DialogFooter>
-                <Button type="button" variant="outline" size="lg" onClick={() => setForm(null)}>Cancel</Button>
-                <Button type="submit" size="lg" disabled={saving}>{saving ? "Saving…" : "Save"}</Button>
+                <Button type="button" variant="outline" size="lg" disabled={saving} onClick={() => setForm(null)}>Cancel</Button>
+                <Button type="submit" size="lg" disabled={saving} aria-busy={saving}>{saving ? (form.id ? "Updating…" : "Saving…") : (form.id ? "Update" : "Save")}</Button>
               </DialogFooter>
             </form>
           )}

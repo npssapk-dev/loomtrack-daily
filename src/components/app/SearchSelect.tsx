@@ -7,10 +7,10 @@ import { cn } from "@/lib/utils";
 export type Option = { value: string; label: string; hint?: string };
 
 export function SearchSelect({
-  options, value, onChange, placeholder = "Select…", allowClear, invalid, id,
+  options, value, onChange, placeholder = "Select…", allowClear, invalid, id, required,
 }: {
   options: Option[]; value: string; onChange: (v: string) => void; placeholder?: string;
-  allowClear?: boolean; invalid?: boolean; id?: string;
+  allowClear?: boolean; invalid?: boolean; id?: string; required?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const sel = options.find((o) => o.value === value);
@@ -20,6 +20,7 @@ export function SearchSelect({
         <button
           id={id}
           type="button"
+          aria-required={required || undefined}
           className={cn(
             "flex h-12 w-full items-center justify-between rounded-md border border-input bg-card px-3 text-left text-base",
             "focus:outline-none focus:ring-2 focus:ring-ring",
