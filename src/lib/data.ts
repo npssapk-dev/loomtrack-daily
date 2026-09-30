@@ -59,16 +59,17 @@ export function useProductionTotals(from: string, to: string) {
 }
 
 /** Server-side paged master list for the current business, newest record first. */
-export function useMasterPage<T>(table: string, page: number, pageSize = 25) {
+export function useMasterPage<T>(table: string, page: number, pageSize = 25, search?: { key: string; q: string }) {
   const bid = useBusinessId();
   return useQuery({
-    queryKey: [table, bid, "page", page, pageSize],
+    queryKey: [table, bid, "page", page, pageSize, search ?? null],
     enabled: !!bid,
     placeholderData: (prev) => prev,
     queryFn: async () => {
       const start = page * pageSize;
-      const { data, error, count } = await db.from(table).select("*", { count: "exact" }).eq("business_id", bid)
-        .order("id", { ascending: false }).range(start, start + pageSize - 1);
+      let q = db.from(table).select("*", { count: "exact" }).eq("business_id", bid);
+      if (search) q = q.ilike(search.key, `%${search.q.replace(/[%_,()]/g, " ")}%`);
+      const { data, error, count } = await q.order("id", { ascending: false }).range(start, start + pageSize - 1);
       if (error) throw error;
       return { rows: data as T[], total: (count as number | null) ?? 0 };
     },

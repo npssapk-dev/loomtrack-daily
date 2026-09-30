@@ -10,8 +10,8 @@ import { DataTable, Empty, Field, PageHeader, Panel, StatusBadge } from "./ui";
 import { db, errMsg, useBusinessId, useInvalidateAll, useMasterPage, useUserNames } from "@/lib/data";
 
 export type CrudField = {
-  key: string; label: string; type?: "text" | "number" | "date" | "textarea" | "bool" | "email" | "tel";
-  required?: boolean; placeholder?: string; defaultValue?: unknown; min?: number;
+  key: string; label: string; type?: "text" | "number" | "date" | "textarea" | "bool" | "email" | "tel" | "select";
+  options?: { value: string; label: string }[]; required?: boolean; placeholder?: string; defaultValue?: unknown; min?: number;
 };
 
 type Row = Record<string, unknown> & {
@@ -24,14 +24,15 @@ export const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleStrin
 
 /** Master CRUD: server-paged, business-scoped, audit-aware. id and audit fields come from the database only. Soft-deactivate instead of delete. */
 export function CrudPage<T extends Row>({
-  title, subtitle, table, singular, fields, columns, uniqueLabel,
+  title, subtitle, table, singular, fields, columns, uniqueLabel, searchKey, children,
 }: {
   title: string; subtitle?: string; table: string; singular: string; fields: CrudField[];
   columns: { label: string; render: (r: T) => ReactNode; className?: string }[];
-  uniqueLabel?: string;
+  uniqueLabel?: string; searchKey?: string; children?: ReactNode;
 }) {
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
-  const { data, isLoading, isFetching } = useMasterPage<T>(table, page, PAGE);
+  const { data, isLoading, isFetching } = useMasterPage<T>(table, page, PAGE, searchKey && search.trim() ? { key: searchKey, q: search.trim() } : undefined);
   const rows = data?.rows ?? [];
   const total = data?.total ?? 0;
   const pages = Math.max(1, Math.ceil(total / PAGE));
@@ -96,8 +97,11 @@ export function CrudPage<T extends Row>({
     <>
       <PageHeader title={title} subtitle={subtitle}
         actions={<Button size="lg" onClick={() => setEditing(blank())}><Plus /> Add {singular}</Button>} />
+      {searchKey && (
+        <div className="mb-3 max-w-sm"><Input aria-label={`Search ${title}`} placeholder="Search…" className="h-11" value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} /></div>
+      )}
       <Panel>
-        {isLoading ? <Empty>Loading…</Empty> : !rows.length ? <Empty>No records yet.</Empty> : (
+        {isLoading ? <Empty>Loading…</Empty> : !rows.length ? <Empty>{search.trim() ? "No matches." : "No records yet."}</Empty> : (
           <>
             <DataTable head={<tr><th className="w-20">No.</th>{columns.map((c) => <th key={c.label} className={c.className}>{c.label}</th>)}<th>Status</th><th>Created at</th><th>Created by</th><th className="w-24" /></tr>}>
               {rows.map((r) => (
@@ -127,6 +131,7 @@ export function CrudPage<T extends Row>({
           </>
         )}
       </Panel>
+      {children}
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && !saving && setEditing(null)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
@@ -146,6 +151,12 @@ export function CrudPage<T extends Row>({
                       <Switch id={f.key} checked={!!editing[f.key]} onCheckedChange={(v) => setEditing({ ...editing, [f.key]: v })} />
                       <span className="text-sm">{editing[f.key] ? "Active" : "Inactive"}</span>
                     </div>
+                  ) : f.type === "select" ? (
+                    <select id={f.key} required={f.required} aria-required={f.required || undefined} className="h-12 w-full rounded-md border border-input bg-card px-3 text-base"
+                      value={String(editing[f.key] ?? "")} onChange={(e) => setEditing({ ...editing, [f.key]: e.target.value })}>
+                      <option value="" disabled>Select…</option>
+                      {(f.options ?? []).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
                   ) : f.type === "textarea" ? (
                     <Textarea id={f.key} required={f.required} value={String(editing[f.key] ?? "")} onChange={(e) => setEditing({ ...editing, [f.key]: e.target.value })} />
                   ) : (

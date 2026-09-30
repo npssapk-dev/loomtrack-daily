@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  LayoutDashboard, Factory, Users, IndianRupee, Receipt, Cog, Package, Contact, Truck, BarChart3, Settings, Menu, LogOut, Wallet, PieChart,
+  LayoutDashboard, Factory, Users, IndianRupee, Receipt, Cog, Package, Contact, Truck, BarChart3, Settings, Menu, LogOut, Wallet, PieChart, Tags,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { supabase } from "@/lib/backend";
@@ -21,6 +21,7 @@ const NAV = [
   { to: "/machines", label: "Machines", icon: Cog },
   { to: "/products", label: "Products", icon: Package },
   { to: "/customers", label: "Customers", icon: Contact },
+  { to: "/payment-types", label: "Payment Types", icon: Tags },
   { to: "/reports", label: "Reports", icon: BarChart3 },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
