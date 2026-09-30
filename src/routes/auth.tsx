@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field } from "@/components/app/ui";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/backend";
 import { lovable } from "@/integrations/lovable";
 
 export const Route = createFileRoute("/auth")({
