@@ -33,9 +33,9 @@ export function PaymentsPage({ direction, title }: { direction?: Direction; titl
 
   async function save() {
     if (!form || !bid) return;
-    if (!form.payment_type_id) return toast.error("Payment type is required");
+    if (!form.payment_type_id) { toast.error("Payment type is required"); return; }
     const amount = Number(form.amount);
-    if (!(amount > 0)) return toast.error("Amount must be greater than 0");
+    if (!(amount > 0)) { toast.error("Amount must be greater than 0"); return; }
     setSaving(true);
     const { data: u } = await supabase.auth.getUser();
     const { error } = await db.from("payments").insert({
@@ -43,7 +43,7 @@ export function PaymentsPage({ direction, title }: { direction?: Direction; titl
       employee_id: form.employee_id || null, description: form.description.trim() || null, created_by: u.user?.id,
     });
     setSaving(false);
-    if (error) return toast.error(errMsg(error));
+    if (error) { toast.error(errMsg(error)); return; }
     toast.success("Transaction saved");
     setForm(null);
     invalidate();
@@ -52,7 +52,7 @@ export function PaymentsPage({ direction, title }: { direction?: Direction; titl
   async function remove(id: string) {
     if (!confirm("Delete this transaction?")) return;
     const { error } = await db.from("payments").delete().eq("id", id).eq("business_id", bid);
-    if (error) return toast.error(errMsg(error));
+    if (error) { toast.error(errMsg(error)); return; }
     invalidate();
   }
 

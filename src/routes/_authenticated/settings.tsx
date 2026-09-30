@@ -23,10 +23,10 @@ function Settings() {
   async function add(e: React.FormEvent) {
     e.preventDefault();
     const d = desc.trim();
-    if (!d) return toast.error("Description is required");
-    if (types?.some((t) => t.description.toLowerCase() === d.toLowerCase() && t.direction === dir)) return toast.error("That payment type already exists");
+    if (!d) { toast.error("Description is required"); return; }
+    if (types?.some((t) => t.description.toLowerCase() === d.toLowerCase() && t.direction === dir)) { toast.error("That payment type already exists"); return; }
     const { error } = await db.from("payment_types").insert({ business_id: bid, description: d, direction: dir });
-    if (error) return toast.error(errMsg(error));
+    if (error) { toast.error(errMsg(error)); return; }
     setDesc(""); toast.success("Payment type added"); invalidate();
   }
 

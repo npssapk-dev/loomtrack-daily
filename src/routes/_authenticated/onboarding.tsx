@@ -38,7 +38,7 @@ function Onboarding() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    for (const f of FIELDS) if ("required" in f && !form[f.key]?.trim()) return toast.error(`${f.label} is required`);
+    for (const f of FIELDS) if ("required" in f && !form[f.key]?.trim()) { toast.error(`${f.label} is required`); return; }
     setBusy(true);
     const v = (k: string) => form[k]?.trim() || null;
     // Existing backend registration function: creates the business and makes the caller OWNER.
@@ -46,7 +46,7 @@ function Onboarding() {
       p_company_name: v("company_name"), p_address: v("address"), p_phone: v("phone"), p_email: v("email"),
       p_city: v("city"), p_state: v("state"), p_country: v("country"), p_postal_code: v("postal_code"), p_tax_id: v("tax_id"),
     });
-    if (error) { setBusy(false); return toast.error(errMsg(error)); }
+    if (error) { setBusy(false); { toast.error(errMsg(error)); return; } }
     await qc.invalidateQueries();
     await qc.refetchQueries({ queryKey: ["membership"] });
     toast.success("Business registered");
