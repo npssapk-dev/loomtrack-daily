@@ -1,7 +1,5 @@
 import { useMemo } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Factory, IndianRupee, PieChart, Truck, Wallet } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { createFileRoute } from "@tanstack/react-router";
 import { DataTable, Empty, PageHeader, Panel, Stat } from "@/components/app/ui";
 import {
   nameMap, sum, useEmployees, useMachines, usePayments, usePaymentTypes, useProducts, useProductionEntries, useRecentProduction,
@@ -35,13 +33,6 @@ function DashboardPage() {
   return (
     <>
       <PageHeader title="Dashboard" subtitle={`${fmtDate(from)} – ${fmtDate(to)}`} />
-      <nav aria-label="Daily workflows" className="mb-5 flex gap-2 overflow-x-auto pb-1">
-        <Button asChild variant="outline" className="shrink-0"><Link to="/production"><Factory />Daily Production</Link></Button>
-        <Button asChild variant="outline" className="shrink-0"><Link to="/payments"><IndianRupee />Income & Expenses</Link></Button>
-        <Button asChild variant="outline" className="shrink-0"><Link to="/deliveries"><Truck />Sales & Delivery</Link></Button>
-        <Button asChild variant="outline" className="shrink-0"><Link to="/production-summary"><PieChart />Production Summary</Link></Button>
-        <Button asChild variant="outline" className="shrink-0"><Link to="/wages"><Wallet />Employee Wages</Link></Button>
-      </nav>
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-3">
         <Stat label="Production qty" value={v(qty(sum(prod, (r) => r.quantity)))} />
         <Stat label="Production wages" value={v(money(sum(prod, (r) => r.wage_amount)))} tone="accent" />
