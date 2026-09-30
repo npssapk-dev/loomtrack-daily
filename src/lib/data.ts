@@ -43,18 +43,34 @@ export function useProductionPage(from: string, to: string, page: number, pageSi
   });
 }
 
-/** Totals for the full date range. The database disallows SQL aggregates via the API, so only two numeric columns are fetched. */
+/** Totals for the full date range via the secure production_summary RPC (membership-checked in the database). */
 export function useProductionTotals(from: string, to: string) {
   const bid = useBusinessId();
   return useQuery({
     queryKey: ["production_entries", bid, "totals", from, to],
     enabled: !!bid,
     queryFn: async () => {
-      const { data, error } = await db.from("production_entries").select("quantity,wage_amount").eq("business_id", bid)
-        .gte("production_date", from).lte("production_date", to).limit(100000);
+      const { data, error } = await db.rpc("production_summary", { p_business_id: bid, p_from: from, p_to: to });
       if (error) throw error;
-      const rows = (data ?? []) as { quantity: number; wage_amount: number }[];
-      return { qty: sum(rows, (r) => r.quantity), wages: sum(rows, (r) => r.wage_amount), count: rows.length };
+      const r = (Array.isArray(data) ? data[0] : data) as { total_quantity?: number; total_wages?: number; entry_count?: number } | null;
+      return { qty: Number(r?.total_quantity ?? 0), wages: Number(r?.total_wages ?? 0), count: Number(r?.entry_count ?? 0) };
+    },
+  });
+}
+
+/** Server-side paged master list for the current business, newest record first. */
+export function useMasterPage<T>(table: string, page: number, pageSize = 25) {
+  const bid = useBusinessId();
+  return useQuery({
+    queryKey: [table, bid, "page", page, pageSize],
+    enabled: !!bid,
+    placeholderData: (prev) => prev,
+    queryFn: async () => {
+      const start = page * pageSize;
+      const { data, error, count } = await db.from(table).select("*", { count: "exact" }).eq("business_id", bid)
+        .order("record_no", { ascending: false }).range(start, start + pageSize - 1);
+      if (error) throw error;
+      return { rows: data as T[], total: (count as number | null) ?? 0 };
     },
   });
 }
