@@ -2,28 +2,23 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  LayoutDashboard, BarChart3, Settings, Menu, LogOut, Library, Factory, PieChart, Wallet, IndianRupee, Truck,
+  LayoutDashboard, Users, Cog, Package, Contact, BarChart3, Settings, Menu, LogOut, Tags, ChevronDown, Library,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { supabase } from "@/lib/backend";
 import { useSettings } from "@/lib/data";
 import { setCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-const MASTER_PATHS = ["/customers", "/employees", "/machines", "/products", "/payment-types"];
-
-const NAV_ITEMS = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/masters", label: "Masters", icon: Library },
-  { to: "/production", label: "Daily Production", icon: Factory },
-  { to: "/production-summary", label: "Production Summary", icon: PieChart },
-  { to: "/wages", label: "Employee Wages", icon: Wallet },
-  { to: "/payments", label: "Income & Expenses", icon: IndianRupee },
-  { to: "/deliveries", label: "Sales & Delivery", icon: Truck },
-  { to: "/reports", label: "Reports", icon: BarChart3 },
-  { to: "/settings", label: "Settings", icon: Settings },
+const MASTERS = [
+  { to: "/customers", label: "Customers", icon: Contact },
+  { to: "/employees", label: "Employees", icon: Users },
+  { to: "/machines", label: "Machines", icon: Cog },
+  { to: "/products", label: "Products", icon: Package },
+  { to: "/payment-types", label: "Payment Types", icon: Tags },
 ] as const;
 
 const PAGE_NAMES: Record<string, string> = {
@@ -47,13 +42,15 @@ function Brand({ name }: { name?: string | undefined }) {
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const onMaster = pathname === "/masters" || MASTER_PATHS.some((path) => pathname.startsWith(path));
+  const onMaster = pathname === "/masters" || MASTERS.some((item) => pathname.startsWith(item.to));
+  const [mastersOpen, setMastersOpen] = useState(onMaster);
   const { data: settings } = useSettings();
   const qc = useQueryClient();
   const navigate = useNavigate();
 
   useEffect(() => { if (settings) setCurrency(settings.currency); }, [settings]);
   useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => { if (onMaster) setMastersOpen(true); }, [onMaster]);
 
   async function signOut() {
     await qc.cancelQueries();
@@ -62,11 +59,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     navigate({ to: "/auth", replace: true });
   }
 
-  const navLink = (item: (typeof NAV_ITEMS)[number]) => {
-    const active = item.to === "/masters" ? onMaster : pathname.startsWith(item.to);
+  const navLink = (item: { to: "/dashboard" | "/customers" | "/employees" | "/machines" | "/products" | "/payment-types" | "/reports" | "/settings"; label: string; icon: typeof LayoutDashboard }, nested = false) => {
+    const active = pathname.startsWith(item.to);
     return (
       <Link key={item.to} to={item.to}
-        className={cn("flex items-center gap-3 rounded-md px-3 py-2.5 text-[15px] transition-colors",
+        className={cn("flex items-center gap-3 rounded-md px-3 py-2.5 text-[15px] transition-colors", nested && "ml-3 py-2 text-sm",
           active ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground shadow-[inset_3px_0_0_var(--sidebar-primary)]" : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60")}>
         <item.icon className="h-[18px] w-[18px]" />
         {item.label}
@@ -76,7 +73,21 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const navList = (
     <nav className="flex flex-col gap-0.5">
-      {NAV_ITEMS.map(navLink)}
+      {navLink({ to: "/dashboard", label: "Dashboard", icon: LayoutDashboard })}
+      <Collapsible open={mastersOpen} onOpenChange={setMastersOpen}>
+        <CollapsibleTrigger asChild>
+          <Button variant="ghost" className={cn("h-auto w-full justify-start gap-3 px-3 py-2.5 text-[15px] font-normal text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground", onMaster && "font-medium text-sidebar-accent-foreground")}>
+            <Library className="h-[18px] w-[18px]" />
+            <span className="flex-1 text-left">Masters</span>
+            <ChevronDown className={cn("h-4 w-4 transition-transform", mastersOpen && "rotate-180")} />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-0.5 pt-0.5">
+          {MASTERS.map((item) => navLink(item, true))}
+        </CollapsibleContent>
+      </Collapsible>
+      {navLink({ to: "/reports", label: "Reports", icon: BarChart3 })}
+      {navLink({ to: "/settings", label: "Settings", icon: Settings })}
     </nav>
   );
 
