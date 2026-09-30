@@ -18,7 +18,7 @@ export function daysAgoStr(n: number) {
 export function fmtDate(s?: string | null) {
   if (!s) return "";
   const [y, m, d] = s.split("-").map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+  return new Date(y ?? 1970, (m ?? 1) - 1, d ?? 1).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 let currency = "₹";

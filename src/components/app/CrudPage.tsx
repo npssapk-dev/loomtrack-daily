@@ -44,7 +44,7 @@ export function CrudPage<T extends Row>({
       payload[f.key] = f.type === "number" ? Number(v || 0) : v === "" ? null : v;
     }
     setSaving(true);
-    const q = editing.id ? db.from(table).update(payload).eq("id", editing.id) : db.from(table).insert(payload);
+    const q = editing["id"] ? db.from(table).update(payload).eq("id", editing["id"]) : db.from(table).insert(payload);
     const { error } = await q;
     setSaving(false);
     if (error) {
@@ -90,7 +90,7 @@ export function CrudPage<T extends Row>({
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{editing?.id ? "Edit" : "Add"} {singular}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editing?.["id"] ? "Edit" : "Add"} {singular}</DialogTitle></DialogHeader>
           {editing && (
             <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save(); }}>
               {fields.map((f) => (

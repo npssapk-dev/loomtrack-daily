@@ -31,7 +31,7 @@ const BOTTOM = [
   { to: "/deliveries", label: "Sales", icon: Truck },
 ] as const;
 
-function Brand({ name }: { name?: string }) {
+function Brand({ name }: { name?: string | undefined }) {
   return (
     <div className="flex items-center gap-2.5">
       <div className="grid h-9 w-9 place-items-center rounded-md bg-sidebar-primary bg-weave font-display text-lg font-bold text-sidebar-primary-foreground">L</div>
