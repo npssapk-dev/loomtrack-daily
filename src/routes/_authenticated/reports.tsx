@@ -36,9 +36,9 @@ function ReportsPage() {
   const [kind, setKind] = useState<Kind>("production");
   const [from, setFrom] = useState(monthStartStr());
   const [to, setTo] = useState(today);
-  const [f, setF] = useState<Record<string, string>>({});
+  const [f, setF] = useState<Partial<Record<"employee" | "machine" | "product" | "type" | "customer" | "direction", string>>>({});
   const [page, setPage] = useState(0);
-  const set = (k: string, v: string) => { setF((p) => ({ ...p, [k]: v })); setPage(0); };
+  const set = (k: keyof typeof f, v: string) => { setF((p) => ({ ...p, [k]: v })); setPage(0); };
 
   const machines = useMachines().data ?? [];
   const products = useProducts().data ?? [];
@@ -144,7 +144,7 @@ function ReportsPage() {
   const empO = opts(employees.map((x) => ({ id: x.id, label: `${x.id} · ${x.name}` })));
   const prodO = opts(products.map((x) => ({ id: x.id, label: `${x.id} · ${x.code} · ${x.name}` })));
   const filters: ReactNode[] = [];
-  const sel = (k: string, label: string, o: Option[], ph: string) => filters.push(
+  const sel = (k: keyof typeof f, label: string, o: Option[], ph: string) => filters.push(
     <Field key={k} label={label}><SearchSelect options={o} value={f[k] ?? ""} onChange={(v) => set(k, v)} allowClear placeholder={ph} /></Field>);
   if (kind === "production") {
     sel("machine", "Machine", opts(machines.map((x) => ({ id: x.id, label: `${x.id} · ${x.name}` }))), "All machines");
