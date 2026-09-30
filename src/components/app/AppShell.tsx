@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Factory, Users, IndianRupee, Receipt, Cog, Package, Contact, Truck, BarChart3, Settings, Menu, LogOut,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/backend";
 import { useSettings } from "@/lib/data";
 import { setCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";

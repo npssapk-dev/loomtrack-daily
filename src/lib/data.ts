@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/backend";
 
 export type Machine = { id: string; name: string; active: boolean };
 export type Product = { id: string; name: string; code: string; default_rate: number; unit: string; active: boolean };
