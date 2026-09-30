@@ -44,7 +44,7 @@ function ProductionPage() {
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false); // synchronous lock: blocks rapid double-click / Enter before re-render
   const deletingRef = useRef(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const mBy = useMemo(() => Object.fromEntries((machines ?? []).map((x) => [x.id, x])), [machines]);
   const pBy = useMemo(() => Object.fromEntries((products ?? []).map((x) => [x.id, x])), [products]);

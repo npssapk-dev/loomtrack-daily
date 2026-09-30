@@ -41,7 +41,7 @@ export function CrudPage<T extends Row>({
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
   const [saving, setSaving] = useState(false);
   const lock = useRef(false);
-  const [toggling, setToggling] = useState<string | null>(null);
+  const [toggling, setToggling] = useState<number | null>(null);
   const invalidate = useInvalidateAll();
   const bid = useBusinessId();
 
