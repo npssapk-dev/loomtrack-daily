@@ -90,7 +90,7 @@ export function CrudPage<T extends Row>({
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{editing?.id ? "Edit" : "Add"} {singular}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editing?.["id"] ? "Edit" : "Add"} {singular}</DialogTitle></DialogHeader>
           {editing && (
             <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save(); }}>
               {fields.map((f) => (
