@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { DataTable, Empty, Field, PageHeader, Panel, Stat } from "@/components/app/ui";
 import { SearchSelect } from "@/components/app/SearchSelect";
 import {
-  db, errMsg, sum, useBusinessId, useEmployees, useInvalidateAll, useMachines, useProducts, useProductionEntries,
+  db, errMsg, useBusinessId, useEmployees, useInvalidateAll, useMachines, useProducts, useProductionPage, useProductionTotals, useUserNames,
   type ProductionEntry,
 } from "@/lib/data";
 import { fmtDate, money, monthStartStr, qty, round2, todayStr } from "@/lib/format";
@@ -19,16 +19,26 @@ export const Route = createFileRoute("/_authenticated/production")({
   component: ProductionPage,
 });
 
-type Form = { id?: string; production_date: string; machine_id: string; product_id: string; employee_id: string; quantity: string; piece_rate: string; notes: string };
+type Form = { id?: string; entry?: ProductionEntry; production_date: string; machine_id: string; product_id: string; employee_id: string; quantity: string; piece_rate: string; notes: string };
+
+const PAGE = 25;
+const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—");
 
 function ProductionPage() {
   const bid = useBusinessId();
   const [from, setFrom] = useState(monthStartStr());
   const [to, setTo] = useState(todayStr());
+  const [page, setPage] = useState(0);
   const { data: machines } = useMachines();
   const { data: products } = useProducts();
   const { data: employees } = useEmployees();
-  const { data: rows, isLoading } = useProductionEntries(from, to);
+  const { data: pageData, isLoading, isFetching } = useProductionPage(from, to, page, PAGE);
+  const { data: totals } = useProductionTotals(from, to);
+  const rows = pageData?.rows ?? [];
+  const total = pageData?.total ?? 0;
+  const pages = Math.max(1, Math.ceil(total / PAGE));
+  const { data: names } = useUserNames(rows.flatMap((r) => [r.created_by, r.updated_by]));
+  const who = (id: string | null) => (!id ? "System/Existing" : names?.[id] ?? "User");
   const invalidate = useInvalidateAll();
   const [form, setForm] = useState<Form | null>(null);
   const [saving, setSaving] = useState(false);
@@ -97,6 +107,7 @@ function ProductionPage() {
       if (error) { toast.error(errMsg(error)); return; }
       toast.success(form.id ? "Entry updated" : "Production saved");
       setForm(null);
+      if (!form.id) setPage(0); // new entries appear at the top of page 1
       invalidate();
     } catch (e) {
       toast.error(errMsg(e));
@@ -139,16 +150,17 @@ function ProductionPage() {
       )}
 
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-5">
-        <Field label="From" htmlFor="from"><Input id="from" type="date" className="h-11" value={from} onChange={(e) => setFrom(e.target.value)} /></Field>
-        <Field label="To" htmlFor="to"><Input id="to" type="date" className="h-11" value={to} onChange={(e) => setTo(e.target.value)} /></Field>
-        <Stat label="Total qty" value={qty(sum(rows, (r) => r.quantity))} />
-        <Stat label="Total wages" value={money(sum(rows, (r) => r.wage_amount))} tone="accent" />
-        <Stat label="Entries" value={String(rows?.length ?? 0)} />
+        <Field label="From" htmlFor="from"><Input id="from" type="date" className="h-11" value={from} onChange={(e) => { setFrom(e.target.value); setPage(0); }} /></Field>
+        <Field label="To" htmlFor="to"><Input id="to" type="date" className="h-11" value={to} onChange={(e) => { setTo(e.target.value); setPage(0); }} /></Field>
+        <Stat label="Total qty" value={totals ? qty(totals.qty) : "…"} />
+        <Stat label="Total wages" value={totals ? money(totals.wages) : "…"} tone="accent" />
+        <Stat label="Entries" value={String(pageData?.total ?? totals?.count ?? 0)} />
       </div>
 
       <Panel>
-        {isLoading ? <Empty>Loading…</Empty> : !rows?.length ? <Empty>No production in this period.</Empty> : (
-          <DataTable head={<tr><th>No.</th><th>Date</th><th>Machine</th><th>Product</th><th>Employee</th><th className="text-right">Qty</th><th className="text-right">Rate</th><th className="text-right">Wage</th><th>Notes</th><th /></tr>}>
+        {isLoading ? <Empty>Loading…</Empty> : !rows.length ? <Empty>No production in this period.</Empty> : (
+          <>
+          <DataTable head={<tr><th>No.</th><th>Date</th><th>Machine</th><th>Product</th><th>Employee</th><th className="text-right">Qty</th><th className="text-right">Rate</th><th className="text-right">Wage</th><th>Notes</th><th>Created at</th><th>Created by</th><th /></tr>}>
             {rows.map((r) => (
               <tr key={r.id}>
                 <td className="num">{r.record_no}</td>
@@ -160,6 +172,8 @@ function ProductionPage() {
                 <td className="num text-right">{money(r.piece_rate)}</td>
                 <td className="num text-right font-medium">{money(r.wage_amount)}</td>
                 <td className="max-w-40 truncate">{r.notes}</td>
+                <td className="whitespace-nowrap text-xs">{fmtDateTime(r.created_at)}</td>
+                <td className="whitespace-nowrap text-xs">{who(r.created_by)}</td>
                 <td className="whitespace-nowrap text-right">
                   <Button variant="ghost" size="icon" aria-label="Edit" onClick={() => openEdit(r)}><Pencil /></Button>
                   <Button variant="ghost" size="icon" aria-label="Delete" disabled={deletingId === r.id} onClick={() => remove(r)}><Trash2 className="text-destructive" /></Button>
@@ -167,14 +181,28 @@ function ProductionPage() {
               </tr>
             ))}
           </DataTable>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
+            <span>Showing {page * PAGE + 1}–{page * PAGE + rows.length} of {total} · Page {page + 1} of {pages}</span>
+            <div className="flex gap-2">
+              <Button variant="outline" disabled={page === 0 || isFetching} onClick={() => setPage(page - 1)}>Previous</Button>
+              <Button variant="outline" disabled={page + 1 >= pages || isFetching} onClick={() => setPage(page + 1)}>Next</Button>
+            </div>
+          </div>
+          </>
         )}
       </Panel>
 
       <Dialog open={!!form} onOpenChange={(o) => !o && setForm(null)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{form?.id ? "Edit production" : "Add production"}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{form?.id ? `Edit production${form.entry ? ` ${form.entry.record_no}` : ""}` : "Add production"}</DialogTitle></DialogHeader>
           {form && (
             <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save(); }}>
+              {form.entry && (
+                <div className="grid grid-cols-2 gap-2 rounded-md border px-3 py-2 text-xs text-muted-foreground">
+                  <span>Created: {fmtDateTime(form.entry.created_at)} · {who(form.entry.created_by)}</span>
+                  <span>Updated: {form.entry.updated_at ? `${fmtDateTime(form.entry.updated_at)} · ${who(form.entry.updated_by)}` : "—"}</span>
+                </div>
+              )}
               <Field label="Production date" htmlFor="pdate" required error={form.production_date > todayStr() ? "Production date cannot be in the future" : undefined}>
                 <Input id="pdate" type="date" required max={todayStr()} className="h-12" value={form.production_date} onChange={(e) => setForm({ ...form, production_date: e.target.value })} />
               </Field>
