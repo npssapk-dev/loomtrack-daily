@@ -44,7 +44,7 @@ export function CrudPage<T extends Row>({
       payload[f.key] = f.type === "number" ? Number(v || 0) : v === "" ? null : v;
     }
     setSaving(true);
-    const q = editing.id ? db.from(table).update(payload).eq("id", editing.id) : db.from(table).insert(payload);
+    const q = editing["id"] ? db.from(table).update(payload).eq("id", editing["id"]) : db.from(table).insert(payload);
     const { error } = await q;
     setSaving(false);
     if (error) {
