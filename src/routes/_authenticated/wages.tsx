@@ -15,14 +15,14 @@ export const Route = createFileRoute("/_authenticated/wages")({
 });
 
 const PAGE = 25;
-type Row = { emp: Employee | undefined; id: string; qty: number; wage: number; count: number };
+type Row = { emp: Employee | undefined; id: number; qty: number; wage: number; count: number };
 
 function WagesPage() {
   const today = todayStr();
   const [from, setFrom] = useState(monthStartStr());
   const [to, setTo] = useState(today);
   const [empId, setEmpId] = useState("");
-  const [view, setView] = useState<string | null>(null);
+  const [view, setView] = useState<number | null>(null);
 
   const employees = useEmployees();
   const empById = useMemo(() => new Map((employees.data ?? []).map((e) => [e.id, e])), [employees.data]);
@@ -33,7 +33,7 @@ function WagesPage() {
   const wage = useWageRows(rangeError ? "" : from, rangeError ? "" : to, empId);
 
   const rows = useMemo<Row[]>(() => {
-    const m = new Map<string, Row>();
+    const m = new Map<number, Row>();
     for (const r of wage.data ?? []) {
       const x = m.get(r.employee_id) ?? { id: r.employee_id, emp: empById.get(r.employee_id), qty: 0, wage: 0, count: 0 };
       x.qty += Number(r.quantity) || 0; x.wage += Number(r.wage_amount) || 0; x.count += 1;
@@ -91,7 +91,7 @@ function WagesPage() {
   );
 }
 
-function EntriesDialog({ employeeId, emp, from, to, onClose }: { employeeId: string; emp: Employee | undefined; from: string; to: string; onClose: () => void }) {
+function EntriesDialog({ employeeId, emp, from, to, onClose }: { employeeId: number; emp: Employee | undefined; from: string; to: string; onClose: () => void }) {
   const [page, setPage] = useState(0);
   const q = useEmployeeEntriesPage(employeeId, from, to, page, PAGE);
   const machines = useMachines();

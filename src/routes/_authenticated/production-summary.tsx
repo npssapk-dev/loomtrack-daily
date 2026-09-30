@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_authenticated/production-summary")({
 const PAGE = 25;
 const tip = { contentStyle: { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 6, fontSize: 12 } };
 
-function group<T>(rows: T[], key: (r: T) => string) {
+function group<T, K extends string | number>(rows: T[], key: (r: T) => K) {
   const m = new Map<string, number>();
   for (const r of rows) m.set(key(r), (m.get(key(r)) ?? 0) + Number((r as { quantity: number }).quantity || 0));
   return m;

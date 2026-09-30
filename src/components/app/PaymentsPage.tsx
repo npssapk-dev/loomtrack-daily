@@ -49,7 +49,7 @@ export function PaymentsPage({ direction, title }: { direction?: Direction; titl
     invalidate();
   }
 
-  async function remove(id: string) {
+  async function remove(id: number) {
     if (!confirm("Delete this transaction?")) return;
     const { error } = await db.from("payments").delete().eq("id", id).eq("business_id", bid);
     if (error) { toast.error(errMsg(error)); return; }
