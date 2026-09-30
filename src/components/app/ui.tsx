@@ -80,7 +80,7 @@ export function DataTable({ head, children, foot }: { head: ReactNode; children:
   return (
     <div className="-mx-4 overflow-x-auto">
       <table className="w-full min-w-[560px] text-sm">
-        <thead className="sticky top-0 z-10 border-b bg-muted text-left text-xs uppercase tracking-wide text-muted-foreground [&_th]:px-4 [&_th]:py-2.5 [&_th]:font-medium">
+        <thead className="border-b bg-muted/60 text-left text-xs uppercase tracking-wide text-muted-foreground [&_th]:px-4 [&_th]:py-2.5 [&_th]:font-medium">
           {head}
         </thead>
         <tbody className="[&_td]:px-4 [&_td]:py-2.5 [&_tr]:border-b [&_tr:last-child]:border-0">{children}</tbody>
