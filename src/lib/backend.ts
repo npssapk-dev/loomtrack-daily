@@ -5,8 +5,19 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { supabase as cloudClient } from "@/integrations/supabase/client";
 
-const EXT_URL = import.meta.env["VITE_EXTERNAL_SUPABASE_URL"] as string | undefined;
-const EXT_KEY = import.meta.env["VITE_EXTERNAL_SUPABASE_ANON_KEY"] as string | undefined;
+// Browser-safe public values for the external LoomTrack project (publishable key only).
+const PUBLIC_EXT_URL = "https://ahkzbgrkyncdqmsfkmng.supabase.co";
+const PUBLIC_EXT_KEY = "sb_publishable_vbMm_nv3WW-YQo9FZ48IXA_Fhh2sAXf";
+const EXT_URL = (import.meta.env["VITE_EXTERNAL_SUPABASE_URL"] as string | undefined) || PUBLIC_EXT_URL;
+const EXT_KEY = (import.meta.env["VITE_EXTERNAL_SUPABASE_ANON_KEY"] as string | undefined) || PUBLIC_EXT_KEY;
+
+// Publishable keys are opaque (not JWTs): send as apikey, never as a Bearer token.
+const extFetch: typeof fetch = (input, init) => {
+  const h = new Headers(init?.headers);
+  if (h.get("Authorization") === `Bearer ${EXT_KEY}`) h.delete("Authorization");
+  h.set("apikey", EXT_KEY);
+  return fetch(input, { ...init, headers: h });
+};
 
 export const backendSource: "external" | "cloud" = EXT_URL && EXT_KEY ? "external" : "cloud";
 
@@ -14,6 +25,7 @@ let ext: SupabaseClient | undefined;
 function external(): SupabaseClient {
   if (!ext) {
     ext = createClient(EXT_URL!, EXT_KEY!, {
+      global: { fetch: extFetch },
       auth: { persistSession: true, autoRefreshToken: true, storageKey: "loomtrack-ext-auth" },
     });
   }
