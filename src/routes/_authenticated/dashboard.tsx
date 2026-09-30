@@ -46,7 +46,7 @@ function DashboardPage() {
           <DataTable head={<tr><th>No.</th><th>Date</th><th>Machine</th><th>Product</th><th>Employee</th><th className="text-right">Qty</th><th className="text-right">Wage</th></tr>}>
             {recent.map((r) => (
               <tr key={r.id}>
-                <td className="num">{r.record_no}</td>
+                <td className="num">{r.id}</td>
                 <td className="whitespace-nowrap">{fmtDate(r.production_date)}</td>
                 <td>{mN[r.machine_id] ?? "—"}</td>
                 <td>{pN[r.product_id] ?? "—"}</td>

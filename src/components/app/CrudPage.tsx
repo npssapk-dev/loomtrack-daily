@@ -15,14 +15,14 @@ export type CrudField = {
 };
 
 type Row = Record<string, unknown> & {
-  id: string; record_no: number; is_active: boolean;
+  id: string; id: number; is_active: boolean;
   created_at?: string | null; created_by?: string | null; updated_at?: string | null; updated_by?: string | null;
 };
 
 const PAGE = 25;
 export const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—");
 
-/** Master CRUD: server-paged, business-scoped, audit-aware. record_no and audit fields come from the database only. Soft-deactivate instead of delete. */
+/** Master CRUD: server-paged, business-scoped, audit-aware. id and audit fields come from the database only. Soft-deactivate instead of delete. */
 export function CrudPage<T extends Row>({
   title, subtitle, table, singular, fields, columns, uniqueLabel,
 }: {
@@ -80,7 +80,7 @@ export function CrudPage<T extends Row>({
   async function toggleActive(r: T) {
     if (toggling) return;
     const next = !r.is_active;
-    if (!confirm(`${next ? "Reactivate" : "Deactivate"} ${singular.toLowerCase()} ${r.record_no}?${next ? "" : " It will no longer appear in new entries; past records are kept."}`)) return;
+    if (!confirm(`${next ? "Reactivate" : "Deactivate"} ${singular.toLowerCase()} ${r.id}?${next ? "" : " It will no longer appear in new entries; past records are kept."}`)) return;
     setToggling(r.id);
     try {
       const { error } = await db.from(table).update({ is_active: next }).eq("id", r.id).eq("business_id", bid);
@@ -102,7 +102,7 @@ export function CrudPage<T extends Row>({
             <DataTable head={<tr><th className="w-20">No.</th>{columns.map((c) => <th key={c.label} className={c.className}>{c.label}</th>)}<th>Status</th><th>Created at</th><th>Created by</th><th className="w-24" /></tr>}>
               {rows.map((r) => (
                 <tr key={r.id}>
-                  <td className="num">{r.record_no}</td>
+                  <td className="num">{r.id}</td>
                   {columns.map((c) => <td key={c.label} className={c.className}>{c.render(r)}</td>)}
                   <td><StatusBadge status={r.is_active ? "Active" : "Inactive"} /></td>
                   <td className="whitespace-nowrap text-xs">{fmtDateTime(r.created_at)}</td>
@@ -130,7 +130,7 @@ export function CrudPage<T extends Row>({
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && !saving && setEditing(null)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{audit ? `Edit ${singular} ${audit.record_no}` : `Add ${singular}`}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{audit ? `Edit ${singular} ${audit.id}` : `Add ${singular}`}</DialogTitle></DialogHeader>
           {editing && (
             <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save(); }}>
               {audit && (

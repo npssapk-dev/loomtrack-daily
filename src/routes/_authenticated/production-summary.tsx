@@ -41,10 +41,10 @@ function SummaryPage() {
   const eMap = useMemo(() => new Map((emps.data ?? []).map((e) => [e.id, e])), [emps.data]);
   const mMap = useMemo(() => new Map((macs.data ?? []).map((m) => [m.id, m])), [macs.data]);
   const pMap = useMemo(() => new Map((prods.data ?? []).map((p) => [p.id, p])), [prods.data]);
-  const byNo = <T extends { record_no: number }>(l?: T[]) => [...(l ?? [])].sort((a, b) => a.record_no - b.record_no);
-  const eOpts = byNo(emps.data).map((e) => ({ value: e.id, label: `${e.record_no} · ${e.name}` }));
-  const mOpts = byNo(macs.data).map((m) => ({ value: m.id, label: `${m.record_no} · ${m.name}` }));
-  const pOpts = byNo(prods.data).map((p) => ({ value: p.id, label: `${p.record_no} · ${p.code} · ${p.name}` }));
+  const byNo = <T extends { id: number }>(l?: T[]) => [...(l ?? [])].sort((a, b) => a.id - b.id);
+  const eOpts = byNo(emps.data).map((e) => ({ value: e.id, label: `${e.id} · ${e.name}` }));
+  const mOpts = byNo(macs.data).map((m) => ({ value: m.id, label: `${m.id} · ${m.name}` }));
+  const pOpts = byNo(prods.data).map((p) => ({ value: p.id, label: `${p.id} · ${p.code} · ${p.name}` }));
 
   const s = useProductionSummaryRows(f);
   const rows = s.data ?? [];
@@ -104,8 +104,8 @@ function SummaryPage() {
               return (
                 <tr key={r.id}>
                   <td className="whitespace-nowrap">{fmtDate(r.production_date)}</td>
-                  <td className="tabular-nums">{r.record_no}</td>
-                  <td>{e ? `${e.record_no} · ${e.name}` : "—"}</td>
+                  <td className="tabular-nums">{r.id}</td>
+                  <td>{e ? `${e.id} · ${e.name}` : "—"}</td>
                   <td>{mMap.get(r.machine_id)?.name ?? "—"}</td>
                   <td>{p ? `${p.code} · ${p.name}` : "—"}</td>
                   <td className="text-right tabular-nums">{qty(r.quantity)}</td>

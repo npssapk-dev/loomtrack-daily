@@ -27,8 +27,8 @@ export function PaymentsPage({ direction, title }: { direction?: Direction; titl
   const empNames = nameMap(employees);
   const rows = (payments ?? []).filter((p) => !direction || typeById[p.payment_type_id]?.direction === direction);
   const typeOpts = (types ?? []).filter((t) => t.is_active && (!direction || t.direction === direction))
-    .map((t) => ({ value: t.id, label: `${t.payment_type_no} · ${t.description}`, hint: t.direction }));
-  const empOpts = (employees ?? []).filter((e) => e.is_active).map((e) => ({ value: e.id, label: `${e.record_no} · ${e.name}` }));
+    .map((t) => ({ value: t.id, label: `${t.id} · ${t.description}`, hint: t.direction }));
+  const empOpts = (employees ?? []).filter((e) => e.is_active).map((e) => ({ value: e.id, label: `${e.id} · ${e.name}` }));
   const selDir = form ? typeById[form.payment_type_id]?.direction : undefined;
 
   async function save() {
@@ -76,9 +76,9 @@ export function PaymentsPage({ direction, title }: { direction?: Direction; titl
               const t = typeById[r.payment_type_id];
               return (
                 <tr key={r.id}>
-                  <td className="num">{r.payment_no}</td>
+                  <td className="num">{r.id}</td>
                   <td className="whitespace-nowrap">{fmtDate(r.payment_date)}</td>
-                  <td>{t ? `${t.payment_type_no} · ${t.description}` : "—"}</td>
+                  <td>{t ? `${t.id} · ${t.description}` : "—"}</td>
                   <td>{r.employee_id ? empNames[r.employee_id] ?? "—" : ""}</td>
                   <td className="max-w-56 truncate">{r.description}</td>
                   <td className={"num text-right font-medium " + (t?.direction === "EXPENSE" ? "text-destructive" : "text-success")}>{money(r.amount)}</td>

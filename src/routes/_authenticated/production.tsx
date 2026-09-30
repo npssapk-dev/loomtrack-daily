@@ -51,8 +51,8 @@ function ProductionPage() {
   const eBy = useMemo(() => Object.fromEntries((employees ?? []).map((x) => [x.id, x])), [employees]);
 
   // Active only, but keep the currently-selected (possibly now inactive) record when editing.
-  const opts = <T extends { id: string; record_no: number; is_active: boolean }>(list: T[] | undefined, keep: string | undefined, label: (x: T) => string) =>
-    (list ?? []).filter((x) => x.is_active || x.id === keep).map((x) => ({ value: x.id, label: `${x.record_no} · ${label(x)}` }));
+  const opts = <T extends { id: string; id: number; is_active: boolean }>(list: T[] | undefined, keep: string | undefined, label: (x: T) => string) =>
+    (list ?? []).filter((x) => x.is_active || x.id === keep).map((x) => ({ value: x.id, label: `${x.id} · ${label(x)}` }));
   const machineOpts = opts(machines, form?.machine_id, (x) => x.name);
   const productOpts = opts(products, form?.product_id, (x) => `${x.name} (${x.code})`);
   const employeeOpts = opts(employees, form?.employee_id, (x) => x.name);
@@ -119,7 +119,7 @@ function ProductionPage() {
 
   async function remove(r: ProductionEntry) {
     if (deletingRef.current) return;
-    if (!confirm(`Delete production entry ${r.record_no}?`)) return;
+    if (!confirm(`Delete production entry ${r.id}?`)) return;
     deletingRef.current = true;
     setDeletingId(r.id);
     try {
@@ -164,7 +164,7 @@ function ProductionPage() {
           <DataTable head={<tr><th>No.</th><th>Date</th><th>Machine</th><th>Product</th><th>Employee</th><th className="text-right">Qty</th><th className="text-right">Rate</th><th className="text-right">Wage</th><th>Notes</th><th>Created at</th><th>Created by</th><th /></tr>}>
             {rows.map((r) => (
               <tr key={r.id}>
-                <td className="num">{r.record_no}</td>
+                <td className="num">{r.id}</td>
                 <td className="whitespace-nowrap">{fmtDate(r.production_date)}</td>
                 <td>{mBy[r.machine_id]?.name ?? "—"}</td>
                 <td>{pBy[r.product_id]?.name ?? "—"}</td>
@@ -195,7 +195,7 @@ function ProductionPage() {
 
       <Dialog open={!!form} onOpenChange={(o) => !o && setForm(null)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{form?.id ? `Edit production${form.entry ? ` ${form.entry.record_no}` : ""}` : "Add production"}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{form?.id ? `Edit production${form.entry ? ` ${form.entry.id}` : ""}` : "Add production"}</DialogTitle></DialogHeader>
           {form && (
             <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save(); }}>
               {form.entry && (
