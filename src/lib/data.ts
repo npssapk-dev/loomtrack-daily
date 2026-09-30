@@ -258,3 +258,47 @@ export function useEmployeeEntriesPage(employeeId: string, from: string, to: str
     },
   });
 }
+
+export type ProdFilter = { from: string; to: string; employeeId: string; machineId: string; productId: string };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function applyProdFilter(q: any, bid: string, f: ProdFilter) {
+  q = q.eq("business_id", bid).gte("production_date", f.from).lte("production_date", f.to);
+  if (f.employeeId) q = q.eq("employee_id", f.employeeId);
+  if (f.machineId) q = q.eq("machine_id", f.machineId);
+  if (f.productId) q = q.eq("product_id", f.productId);
+  return q;
+}
+
+/** Light rows for production summary charts; capped, date range required. */
+export function useProductionSummaryRows(f: ProdFilter) {
+  const bid = useBusinessId();
+  return useQuery({
+    queryKey: ["production_entries", bid, "summary_rows", f],
+    enabled: !!bid && !!f.from && !!f.to,
+    queryFn: async () => {
+      const { data, error } = await applyProdFilter(
+        db.from("production_entries").select("production_date, employee_id, machine_id, product_id, quantity, wage_amount"), bid!, f,
+      ).limit(WAGE_ROW_CAP);
+      if (error) throw error;
+      return data as Pick<ProductionEntry, "production_date" | "employee_id" | "machine_id" | "product_id" | "quantity" | "wage_amount">[];
+    },
+  });
+}
+
+/** Filtered production detail, newest first, server-paged. */
+export function useProductionFilteredPage(f: ProdFilter, page: number, pageSize = 25) {
+  const bid = useBusinessId();
+  return useQuery({
+    queryKey: ["production_entries", bid, "filtered_page", f, page, pageSize],
+    enabled: !!bid && !!f.from && !!f.to,
+    placeholderData: (prev) => prev,
+    queryFn: async () => {
+      const start = page * pageSize;
+      const { data, error, count } = await applyProdFilter(db.from("production_entries").select("*", { count: "exact" }), bid!, f)
+        .order("production_date", { ascending: false }).order("created_at", { ascending: false }).order("record_no", { ascending: false })
+        .range(start, start + pageSize - 1);
+      if (error) throw error;
+      return { rows: data as ProductionEntry[], total: (count as number | null) ?? 0 };
+    },
+  });
+}
