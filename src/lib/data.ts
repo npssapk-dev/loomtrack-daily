@@ -341,3 +341,46 @@ export function usePaymentTotalsRows(f: PayFilter) {
     },
   });
 }
+
+// deliveries: bill_amount is stored; the browser sends approved × rate (a DB trigger, if any, stays authoritative).
+export type Delivery = {
+  id: number; business_id: number; delivery_date: string; customer_id: number; product_id: number;
+  delivered_qty: number; approved_qty: number; rejected_qty: number; rate: number; bill_amount: number;
+  status: string; notes: string | null; created_at: string; created_by: string | null; updated_at: string | null; updated_by: string | null;
+};
+export type DelFilter = { from: string; to: string; customerId: string; productId: string };
+function applyDelFilter(q: any, bid: number, f: DelFilter) {
+  q = q.eq("business_id", bid).gte("delivery_date", f.from).lte("delivery_date", f.to);
+  if (f.customerId) q = q.eq("customer_id", Number(f.customerId));
+  if (f.productId) q = q.eq("product_id", Number(f.productId));
+  return q;
+}
+export function useDeliveriesPage(f: DelFilter, page: number, pageSize = 25) {
+  const bid = useBusinessId();
+  return useQuery({
+    queryKey: ["deliveries", bid, "page", f, page, pageSize],
+    enabled: !!bid && !!f.from && !!f.to,
+    placeholderData: (prev) => prev,
+    queryFn: async () => {
+      const start = page * pageSize;
+      const { data, error, count } = await applyDelFilter(db.from("deliveries").select("*", { count: "exact" }), bid!, f)
+        .order("delivery_date", { ascending: false }).order("created_at", { ascending: false }).order("id", { ascending: false })
+        .range(start, start + pageSize - 1);
+      if (error) throw error;
+      return { rows: (data ?? []) as Delivery[], total: count ?? 0 };
+    },
+  });
+}
+export const DEL_ROW_CAP = 20000;
+export function useDeliveryTotalsRows(f: DelFilter) {
+  const bid = useBusinessId();
+  return useQuery({
+    queryKey: ["deliveries", bid, "totals", f],
+    enabled: !!bid && !!f.from && !!f.to,
+    queryFn: async () => {
+      const { data, error } = await applyDelFilter(db.from("deliveries").select("delivered_qty, approved_qty, rejected_qty, bill_amount"), bid!, f).limit(DEL_ROW_CAP);
+      if (error) throw error;
+      return (data ?? []) as Pick<Delivery, "delivered_qty" | "approved_qty" | "rejected_qty" | "bill_amount">[];
+    },
+  });
+}
