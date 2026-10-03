@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DataTable, Empty, Field, PageHeader, Panel, Stat } from "@/components/app/ui";
+import { DataTable, DateInput, Empty, Field, PageHeader, Panel, Stat } from "@/components/app/ui";
 import { SearchSelect } from "@/components/app/SearchSelect";
 import {
   db, errMsg, useBusinessId, useEmployees, useInvalidateAll, usePaymentsPage, usePaymentTotalsRows, usePaymentTypes, useUserNames,
   PAY_ROW_CAP, type Direction, type Payment,
 } from "@/lib/data";
-import { fmtDate, money, monthStartStr, todayStr } from "@/lib/format";
+import { fmtDate, fmtDateTime, money, monthStartStr, todayStr } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/payments")({
   head: () => ({ meta: [{ title: "Income & Expenses — LoomTrack" }, { name: "description", content: "Record income and expense payments; direction comes from the payment type." }, { property: "og:title", content: "Income & Expenses — LoomTrack" }, { property: "og:description", content: "Record income and expense payments; direction comes from the payment type." }] }),
@@ -20,7 +20,6 @@ export const Route = createFileRoute("/_authenticated/payments")({
 });
 
 const PAGE = 25;
-const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—");
 type Form = { entry?: Payment; payment_date: string; payment_type_id: string; amount: string; employee_id: string; description: string };
 
 function DirBadge({ d }: { d?: Direction | undefined }) {
@@ -136,7 +135,7 @@ function PaymentsScreen() {
 
   return (
     <>
-      <PageHeader title="Income & Expenses" subtitle="Direction comes from the payment type"
+      <PageHeader title="Income & Expenses"
         actions={<Button size="lg" onClick={openNew} disabled={!types || activeTypes.length === 0}><Plus /> Add payment</Button>} />
 
       {types && activeTypes.length === 0 && (
@@ -147,8 +146,8 @@ function PaymentsScreen() {
 
       <Panel>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Field label="From" htmlFor="pf" required><Input id="pf" type="date" required className="h-11" value={from} max={to || today} onChange={(e) => { setFrom(e.target.value); reset(); }} /></Field>
-          <Field label="To" htmlFor="pt" required error={rangeError || undefined}><Input id="pt" type="date" required className="h-11" value={to} min={from} max={today} onChange={(e) => { setTo(e.target.value); reset(); }} /></Field>
+          <Field label="From" htmlFor="pf" required><DateInput id="pf" required value={from} max={to || today} onChange={(e) => { setFrom(e.target.value); reset(); }} /></Field>
+          <Field label="To" htmlFor="pt" required error={rangeError || undefined}><DateInput id="pt" required value={to} min={from} max={today} onChange={(e) => { setTo(e.target.value); reset(); }} /></Field>
           <Field label="Payment type"><SearchSelect options={filterTypeOpts} value={typeF} onChange={(v) => { setTypeF(v); reset(); }} allowClear placeholder="All types" /></Field>
           <Field label="Direction" htmlFor="pdir">
             <select id="pdir" className="h-11 w-full rounded-md border border-input bg-card px-3" value={dirF} onChange={(e) => { setDirF(e.target.value as "" | Direction); reset(); }}>
@@ -208,7 +207,7 @@ function PaymentsScreen() {
           {form && (
             <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save(); }}>
               <Field label="Date" htmlFor="pd" required error={form.payment_date > today ? "Payment date cannot be in the future" : undefined}>
-                <Input id="pd" type="date" required max={today} className="h-12" value={form.payment_date} onChange={(e) => setForm({ ...form, payment_date: e.target.value })} />
+                <DateInput id="pd" required max={today} className="h-12" value={form.payment_date} onChange={(e) => setForm({ ...form, payment_date: e.target.value })} />
               </Field>
               <Field label="Payment type" required>
                 <SearchSelect options={formTypeOpts} value={form.payment_type_id} onChange={(v) => setForm({ ...form, payment_type_id: v })} placeholder="Select type" required />

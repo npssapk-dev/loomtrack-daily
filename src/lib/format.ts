@@ -17,8 +17,21 @@ export function daysAgoStr(n: number) {
 
 export function fmtDate(s?: string | null) {
   if (!s) return "";
-  const [y, m, d] = s.split("-").map(Number);
-  return new Date(y ?? 1970, (m ?? 1) - 1, d ?? 1).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+  const dateOnly = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (dateOnly) return `${dateOnly[3]}/${dateOnly[2]}/${dateOnly[1]}`;
+  const date = new Date(s);
+  if (Number.isNaN(date.getTime())) return "";
+  return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
+}
+
+export function fmtDateTime(s?: string | Date | null) {
+  if (!s) return "—";
+  const date = s instanceof Date ? s : new Date(s);
+  if (Number.isNaN(date.getTime())) return "—";
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const time = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+  return `${day}/${month}/${date.getFullYear()} ${time}`;
 }
 
 let currency = "₹";

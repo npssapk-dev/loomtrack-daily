@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DataTable, Empty, Field, PageHeader, Panel, Stat } from "@/components/app/ui";
+import { DataTable, DateInput, Empty, Field, PageHeader, Panel, Stat } from "@/components/app/ui";
 import { SearchSelect } from "@/components/app/SearchSelect";
 import {
   db, errMsg, useBusinessId, useCustomers, useDeliveriesPage, useDeliveryTotalsRows, useInvalidateAll, useProducts, useUserNames,
   DEL_ROW_CAP, type Delivery,
 } from "@/lib/data";
-import { fmtDate, money, monthStartStr, qty, round2, todayStr } from "@/lib/format";
+import { fmtDate, fmtDateTime, money, monthStartStr, qty, round2, todayStr } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/deliveries")({
   head: () => ({ meta: [{ title: "Sales & Delivery — LoomTrack" }, { name: "description", content: "Record cloth deliveries, approvals, rejections and bills." }, { property: "og:title", content: "Sales & Delivery — LoomTrack" }, { property: "og:description", content: "Record cloth deliveries, approvals, rejections and bills." }] }),
@@ -21,7 +21,6 @@ export const Route = createFileRoute("/_authenticated/deliveries")({
 
 const PAGE = 25;
 const STATUSES = ["Draft", "Delivered", "Partially Approved", "Approved", "Rejected", "Paid"];
-const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—");
 type Form = { entry?: Delivery; delivery_date: string; customer_id: string; product_id: string; delivered_qty: string; approved_qty: string; rejected_qty: string; rate: string; status: string; notes: string };
 
 function DeliveriesPage() {
@@ -140,7 +139,7 @@ function DeliveriesPage() {
 
   return (
     <>
-      <PageHeader title="Sales & Delivery" subtitle="Deliveries, approvals and bills"
+      <PageHeader title="Sales & Delivery"
         actions={<Button size="lg" onClick={openNew} disabled={!mastersLoaded || missing.length > 0}><Plus /> Add delivery</Button>} />
 
       {mastersLoaded && missing.length > 0 && (
@@ -152,8 +151,8 @@ function DeliveriesPage() {
 
       <Panel>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Field label="From" htmlFor="df" required><Input id="df" type="date" required className="h-11" value={from} max={to || today} onChange={(e) => { setFrom(e.target.value); reset(); }} /></Field>
-          <Field label="To" htmlFor="dt" required error={rangeError || undefined}><Input id="dt" type="date" required className="h-11" value={to} min={from} max={today} onChange={(e) => { setTo(e.target.value); reset(); }} /></Field>
+          <Field label="From" htmlFor="df" required><DateInput id="df" required value={from} max={to || today} onChange={(e) => { setFrom(e.target.value); reset(); }} /></Field>
+          <Field label="To" htmlFor="dt" required error={rangeError || undefined}><DateInput id="dt" required value={to} min={from} max={today} onChange={(e) => { setTo(e.target.value); reset(); }} /></Field>
           <Field label="Customer"><SearchSelect options={custFilterOpts} value={custF} onChange={(v) => { setCustF(v); reset(); }} allowClear placeholder="All customers" /></Field>
           <Field label="Product"><SearchSelect options={prodFilterOpts} value={prodF} onChange={(v) => { setProdF(v); reset(); }} allowClear placeholder="All products" /></Field>
         </div>
@@ -213,7 +212,7 @@ function DeliveriesPage() {
           {form && (
             <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save(); }}>
               <Field label="Delivery date" htmlFor="dd" required error={form.delivery_date > today ? "Delivery date cannot be in the future" : undefined}>
-                <Input id="dd" type="date" required max={today} className="h-12" value={form.delivery_date} onChange={(e) => setForm({ ...form, delivery_date: e.target.value })} />
+                <DateInput id="dd" required max={today} className="h-12" value={form.delivery_date} onChange={(e) => setForm({ ...form, delivery_date: e.target.value })} />
               </Field>
               <Field label="Customer" required><SearchSelect options={custOpts} value={form.customer_id} onChange={(v) => setForm({ ...form, customer_id: v })} placeholder="Select customer" required /></Field>
               <Field label="Product" required><SearchSelect options={prodOpts} value={form.product_id} onChange={(v) => setForm({ ...form, product_id: v })} placeholder="Select product" required /></Field>

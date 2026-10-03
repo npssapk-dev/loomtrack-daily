@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DataTable, Empty, Field, PageHeader, Panel, StatusBadge } from "./ui";
+import { DataTable, DateInput, Empty, Field, PageHeader, Panel, StatusBadge } from "./ui";
 import { db, errMsg, useBusinessId, useInvalidateAll, useMasterPage, useUserNames } from "@/lib/data";
+import { fmtDateTime } from "@/lib/format";
 
 export type CrudField = {
   key: string; label: string; type?: "text" | "number" | "date" | "textarea" | "bool" | "email" | "tel" | "select";
@@ -20,8 +21,6 @@ type Row = Record<string, unknown> & {
 };
 
 const PAGE = 25;
-export const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—");
-
 /** Master CRUD: server-paged, business-scoped, audit-aware. id and audit fields come from the database only. Soft-deactivate instead of delete. */
 export function CrudPage<T extends Row>({
   title, subtitle, table, singular, fields, columns, uniqueLabel, searchKey, children,
@@ -159,6 +158,8 @@ export function CrudPage<T extends Row>({
                     </select>
                   ) : f.type === "textarea" ? (
                     <Textarea id={f.key} required={f.required} value={String(editing[f.key] ?? "")} onChange={(e) => setEditing({ ...editing, [f.key]: e.target.value })} />
+                  ) : f.type === "date" ? (
+                    <DateInput id={f.key} required={f.required} className="h-12 text-base" value={String(editing[f.key] ?? "")} onChange={(e) => setEditing({ ...editing, [f.key]: e.target.value })} />
                   ) : (
                     <Input id={f.key} className="h-12 text-base" type={f.type ?? "text"} required={f.required}
                       step={f.type === "number" ? "0.01" : undefined} min={f.min}

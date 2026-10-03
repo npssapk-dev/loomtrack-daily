@@ -3,14 +3,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PageHeader, Panel, Field, Stat, DataTable, Empty } from "@/components/app/ui";
+import { PageHeader, Panel, Field, Stat, DataTable, DateInput, Empty } from "@/components/app/ui";
 import { SearchSelect, type Option } from "@/components/app/SearchSelect";
 import {
   db, useBusinessId, useMachines, useProducts, useEmployees, useCustomers, usePaymentTypes, errMsg,
 } from "@/lib/data";
-import { downloadCsv, fmtDate, money, monthStartStr, qty, todayStr } from "@/lib/format";
+import { downloadCsv, fmtDate, fmtDateTime, money, monthStartStr, qty, todayStr } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/reports")({
   head: () => ({
@@ -178,10 +177,10 @@ function ReportsPage() {
         <Panel>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <Field label="From" htmlFor="rf" required error={dateErr || undefined}>
-              <Input id="rf" type="date" required max={today} value={from} onChange={(e) => { setFrom(e.target.value); setPage(0); }} />
+              <DateInput id="rf" required max={today} value={from} onChange={(e) => { setFrom(e.target.value); setPage(0); }} />
             </Field>
             <Field label="To" htmlFor="rt" required>
-              <Input id="rt" type="date" required max={today} value={to} onChange={(e) => { setTo(e.target.value); setPage(0); }} />
+              <DateInput id="rt" required max={today} value={to} onChange={(e) => { setTo(e.target.value); setPage(0); }} />
             </Field>
             {filters}
           </div>
@@ -189,7 +188,7 @@ function ReportsPage() {
 
         <p className="text-xs text-muted-foreground">
           Period {fmtDate(from)} – {fmtDate(to)}
-          {q.data && <> · Generated {q.data.at.toLocaleString()}</>}
+          {q.data && <> · Generated {fmtDateTime(q.data.at)}</>}
           {raw.length >= CAP && <span className="text-destructive"> · Showing the first {CAP.toLocaleString()} records — narrow the dates.</span>}
         </p>
 

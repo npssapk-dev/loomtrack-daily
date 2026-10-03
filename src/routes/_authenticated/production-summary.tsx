@@ -2,8 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { DataTable, Empty, Field, PageHeader, Panel, Stat } from "@/components/app/ui";
+import { DataTable, DateInput, Empty, Field, PageHeader, Panel, Stat } from "@/components/app/ui";
 import { SearchSelect } from "@/components/app/SearchSelect";
 import {
   useEmployees, useMachines, useProducts, useProductionFilteredPage, useProductionSummaryRows, WAGE_ROW_CAP, type ProdFilter,
@@ -66,8 +65,8 @@ function SummaryPage() {
       <PageHeader title="Production Summary" subtitle="Trends and contribution from saved production entries" />
       <Panel>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          <Field label="From" htmlFor="sf" required><Input id="sf" type="date" required value={from} max={to || today} onChange={(e) => reset(setFrom)(e.target.value)} className="h-12" /></Field>
-          <Field label="To" htmlFor="st" required error={rangeError || undefined}><Input id="st" type="date" required value={to} min={from} max={today} onChange={(e) => reset(setTo)(e.target.value)} className="h-12" /></Field>
+          <Field label="From" htmlFor="sf" required><DateInput id="sf" required value={from} max={to || today} onChange={(e) => reset(setFrom)(e.target.value)} className="h-12" /></Field>
+          <Field label="To" htmlFor="st" required error={rangeError || undefined}><DateInput id="st" required value={to} min={from} max={today} onChange={(e) => reset(setTo)(e.target.value)} className="h-12" /></Field>
           <Field label="Employee"><SearchSelect options={eOpts} value={employeeId} onChange={reset(setEmp)} allowClear placeholder="All employees" /></Field>
           <Field label="Machine"><SearchSelect options={mOpts} value={machineId} onChange={reset(setMac)} allowClear placeholder="All machines" /></Field>
           <Field label="Product"><SearchSelect options={pOpts} value={productId} onChange={reset(setProd)} allowClear placeholder="All products" /></Field>
