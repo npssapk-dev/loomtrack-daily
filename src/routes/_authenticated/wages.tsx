@@ -4,7 +4,7 @@ import { Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DataTable, Empty, Field, PageHeader, Panel, Stat } from "@/components/app/ui";
+import { DataTable, DateInput, Empty, Field, PageHeader, Panel, Stat } from "@/components/app/ui";
 import { SearchSelect } from "@/components/app/SearchSelect";
 import { useEmployeeEntriesPage, useEmployees, useMachines, useProducts, useWageRows, WAGE_ROW_CAP, type Employee } from "@/lib/data";
 import { fmtDate, money, monthStartStr, qty, todayStr } from "@/lib/format";
@@ -51,8 +51,8 @@ function WagesPage() {
 
       <Panel>
         <div className="grid gap-3 sm:grid-cols-3">
-          <Field label="From" htmlFor="wf" required><Input id="wf" type="date" required value={from} max={to || today} onChange={(e) => setFrom(e.target.value)} className="h-12" /></Field>
-          <Field label="To" htmlFor="wt" required error={rangeError || undefined}><Input id="wt" type="date" required value={to} min={from} max={today} onChange={(e) => setTo(e.target.value)} className="h-12" /></Field>
+          <Field label="From" htmlFor="wf" required><DateInput id="wf" required value={from} max={to || today} onChange={(e) => setFrom(e.target.value)} className="h-12" /></Field>
+          <Field label="To" htmlFor="wt" required error={rangeError || undefined}><DateInput id="wt" required value={to} min={from} max={today} onChange={(e) => setTo(e.target.value)} className="h-12" /></Field>
           <Field label="Employee"><SearchSelect options={empOpts} value={empId} onChange={setEmpId} allowClear placeholder="All employees" /></Field>
         </div>
       </Panel>

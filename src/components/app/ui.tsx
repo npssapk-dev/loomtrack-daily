@@ -1,5 +1,7 @@
-import type { ReactNode } from "react";
+import { forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
 import { Label } from "@/components/ui/label";
+import { CalendarDays } from "lucide-react";
+import { fmtDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: string | undefined; actions?: ReactNode }) {
@@ -29,6 +31,17 @@ export function Field({ label, htmlFor, children, error, className, required }: 
     </div>
   );
 }
+
+export const DateInput = forwardRef<HTMLInputElement, Omit<InputHTMLAttributes<HTMLInputElement>, "type">>(
+  ({ className, value, disabled, ...props }, ref) => (
+    <div className={cn("relative flex h-11 items-center rounded-md border border-input bg-background px-3 text-sm shadow-xs focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50", disabled && "cursor-not-allowed opacity-50", className)}>
+      <span className={cn("min-w-0 flex-1", value ? "text-foreground" : "text-muted-foreground")}>{value ? fmtDate(String(value)) : "DD/MM/YYYY"}</span>
+      <CalendarDays className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+      <input ref={ref} type="date" value={value} disabled={disabled} className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed" {...props} />
+    </div>
+  ),
+);
+DateInput.displayName = "DateInput";
 
 export function Panel({ title, children, actions, className }: { title?: string; children: ReactNode; actions?: ReactNode; className?: string }) {
   return (

@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DataTable, Empty, Field, PageHeader, Panel, Stat } from "@/components/app/ui";
+import { DataTable, DateInput, Empty, Field, PageHeader, Panel, Stat } from "@/components/app/ui";
 import { SearchSelect } from "@/components/app/SearchSelect";
 import {
   db, errMsg, useBusinessId, useEmployees, useInvalidateAll, useMachines, useProducts, useProductionPage, useProductionTotals, useUserNames,
   type ProductionEntry,
 } from "@/lib/data";
-import { fmtDate, money, monthStartStr, qty, round2, todayStr } from "@/lib/format";
+import { fmtDate, fmtDateTime, money, monthStartStr, qty, round2, todayStr } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/production")({
   head: () => ({ meta: [{ title: "Daily Production — LoomTrack" }, { name: "description", content: "Record daily loom production and piece-rate wages." }, { property: "og:title", content: "Daily Production — LoomTrack" }, { property: "og:description", content: "Record daily loom production and piece-rate wages." }] }),
@@ -22,8 +22,6 @@ export const Route = createFileRoute("/_authenticated/production")({
 type Form = { id?: string; entry?: ProductionEntry; production_date: string; machine_id: string; product_id: string; employee_id: string; quantity: string; piece_rate: string; notes: string };
 
 const PAGE = 25;
-const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—");
-
 function ProductionPage() {
   const bid = useBusinessId();
   const [from, setFrom] = useState(monthStartStr());
@@ -151,8 +149,8 @@ function ProductionPage() {
       )}
 
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-5">
-        <Field label="From" htmlFor="from"><Input id="from" type="date" className="h-11" value={from} onChange={(e) => { setFrom(e.target.value); setPage(0); }} /></Field>
-        <Field label="To" htmlFor="to"><Input id="to" type="date" className="h-11" value={to} onChange={(e) => { setTo(e.target.value); setPage(0); }} /></Field>
+        <Field label="From" htmlFor="from"><DateInput id="from" value={from} onChange={(e) => { setFrom(e.target.value); setPage(0); }} /></Field>
+        <Field label="To" htmlFor="to"><DateInput id="to" value={to} onChange={(e) => { setTo(e.target.value); setPage(0); }} /></Field>
         <Stat label="Total qty" value={totals ? qty(totals.qty) : "…"} />
         <Stat label="Total wages" value={totals ? money(totals.wages) : "…"} tone="accent" />
         <Stat label="Entries" value={String(pageData?.total ?? totals?.count ?? 0)} />
@@ -205,7 +203,7 @@ function ProductionPage() {
                 </div>
               )}
               <Field label="Production date" htmlFor="pdate" required error={form.production_date > todayStr() ? "Production date cannot be in the future" : undefined}>
-                <Input id="pdate" type="date" required max={todayStr()} className="h-12" value={form.production_date} onChange={(e) => setForm({ ...form, production_date: e.target.value })} />
+                <DateInput id="pdate" required max={todayStr()} className="h-12" value={form.production_date} onChange={(e) => setForm({ ...form, production_date: e.target.value })} />
               </Field>
               <Field label="Machine" required><SearchSelect required options={machineOpts} value={form.machine_id} onChange={(v) => setForm({ ...form, machine_id: v })} placeholder="Select machine" /></Field>
               <Field label="Product" required><SearchSelect required options={productOpts} value={form.product_id} onChange={pickProduct} placeholder="Select product" /></Field>
