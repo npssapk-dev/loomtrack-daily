@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: string | undefined; actions?: ReactNode }) {
   return (
-    <div className="sticky top-[4.5rem] z-20 -mx-4 mb-4 flex min-h-16 flex-wrap items-center justify-between gap-2 border-b bg-background/95 px-4 py-2.5 shadow-sm backdrop-blur-sm lg:-mx-8 lg:px-8">
+    <div className="sticky top-14 z-20 -mx-4 mb-4 flex min-h-16 flex-wrap items-center justify-between gap-2 border-b bg-background/95 px-4 py-2.5 shadow-sm backdrop-blur-sm lg:-mx-8 lg:px-8">
       <div className="min-w-0 flex-1">
         <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">{title}</h1>
         {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
