@@ -27,12 +27,6 @@ const DAILY_NAV = [
   { to: "/deliveries", label: "Sales", icon: Truck },
 ] as const;
 
-const PAGE_NAMES: Record<string, string> = {
-  "/dashboard": "Dashboard", "/masters": "Masters", "/customers": "Customers", "/employees": "Employees", "/machines": "Machines", "/products": "Products",
-  "/payment-types": "Payment Types", "/production": "Daily Production", "/production-summary": "Production Summary", "/wages": "Employee Wages",
-  "/payments": "Income & Expenses", "/deliveries": "Sales & Delivery", "/reports": "Reports", "/settings": "Settings",
-};
-
 function Brand({ name }: { name?: string | undefined }) {
   return (
     <div className="flex items-center gap-2.5">
@@ -106,7 +100,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen">
-      <aside className={cn("fixed inset-y-0 left-0 hidden flex-col bg-sidebar p-3 text-sidebar-foreground transition-[width] lg:flex", collapsed ? "w-16" : "w-64")}>
+      <aside className={cn("fixed inset-x-0 bottom-0 left-0 top-14 hidden flex-col bg-sidebar p-3 text-sidebar-foreground transition-[width] lg:flex", collapsed ? "w-16" : "w-64")}>
         {!collapsed && settings?.business_name && <p className="mb-4 truncate px-3 pt-2 text-sm font-medium text-sidebar-foreground/70">{settings.business_name}</p>}
         <div className={cn("flex-1 overflow-y-auto", collapsed && "pt-2")}>{navigation(collapsed)}</div>
         <Button variant="ghost" title={collapsed ? "Sign out" : undefined} aria-label="Sign out" onClick={signOut} className={cn("mt-4 h-auto justify-start gap-3 px-3 py-2.5 text-sm font-normal text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground", collapsed && "justify-center px-2")}>
@@ -114,7 +108,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Button>
       </aside>
 
-      <header className={cn("sticky top-0 z-30 grid h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b bg-background px-4 transition-[margin] lg:px-6", collapsed ? "lg:ml-16" : "lg:ml-64")}>
+      <header className="sticky top-0 z-30 grid h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b bg-background px-4 lg:px-6">
         <div className="min-w-0"><Brand /></div>
         <Button type="button" variant="ghost" size="icon" className="lg:hidden" onClick={() => setOpen(true)} aria-label="Open navigation" title="Open navigation"><Menu /></Button>
         <Button type="button" variant="ghost" size="icon" className="hidden lg:inline-flex" onClick={() => setCollapsed((value) => !value)} aria-label={collapsed ? "Expand navigation" : "Collapse navigation"} title={collapsed ? "Expand navigation" : "Collapse navigation"}>
