@@ -109,11 +109,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       <header className="sticky top-0 z-30 grid h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b bg-background px-4 lg:px-6">
-        <div className="min-w-0"><Brand /></div>
-        <Button type="button" variant="ghost" size="icon" className="lg:hidden" onClick={() => setOpen(true)} aria-label="Open navigation" title="Open navigation"><Menu /></Button>
-        <Button type="button" variant="ghost" size="icon" className="hidden lg:inline-flex" onClick={() => setCollapsed((value) => !value)} aria-label={collapsed ? "Expand navigation" : "Collapse navigation"} title={collapsed ? "Expand navigation" : "Collapse navigation"}>
-          {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
-        </Button>
+        <div className="flex min-w-0 items-center gap-2">
+          <Button type="button" variant="ghost" size="icon" className="-ml-2 shrink-0 lg:hidden" onClick={() => setOpen(true)} aria-label="Open navigation" title="Open navigation"><Menu /></Button>
+          <Button type="button" variant="ghost" size="icon" className="-ml-2 hidden shrink-0 lg:inline-flex" onClick={() => setCollapsed((value) => !value)} aria-label={collapsed ? "Expand navigation" : "Collapse navigation"} title={collapsed ? "Expand navigation" : "Collapse navigation"}>
+            {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
+          </Button>
+          <div className="min-w-0"><Brand /></div>
+        </div>
+        <div className="flex items-center gap-2" />
       </header>
 
       <Sheet open={open} onOpenChange={setOpen}>
